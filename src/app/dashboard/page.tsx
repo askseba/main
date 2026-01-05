@@ -1,8 +1,8 @@
 'use client'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { Suspense, useState } from 'react'
 import { StatsGrid, PerfumeGrid, FilterTabs } from '@/components/ui'
+import { RadarChart } from '@/components/ui/RadarChart'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -10,19 +10,22 @@ import {
   getFavoritesPerfumes, 
   getDislikedPerfumes, 
   getWishlistPerfumes,
-  defaultRadarData,
   defaultUserStats
 } from '@/lib/data/perfumes'
-
-const RadarChart = dynamic(() => import('@/components/ui/RadarChart').then(mod => ({ default: mod.RadarChart })), { 
-  ssr: false,
-  loading: () => <div className="w-[400px] h-[400px] flex items-center justify-center"><LoadingSpinner size="md" /></div>
-})
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('favorites')
+
+  const defaultRadarData = [
+    { name: "فلورال", score: 85, color: "#10B981" },
+    { name: "خشبي", score: 75, color: "#F59E0B" },
+    { name: "حمضيات", score: 30, color: "#EF4444" },
+    { name: "شرقي", score: 45, color: "#3B82F6" },
+    { name: "منعش", score: 60, color: "#8B5CF6" },
+    { name: "توابل", score: 70, color: "#EC4899" },
+  ]
 
   // Redirect to login if not authenticated
   if (status === 'unauthenticated') {
@@ -149,7 +152,7 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold text-[#5B4233] mb-8 text-center">بصمتك العطرية</h2>
           <div className="flex justify-center">
             <Suspense fallback={<div className="w-[400px] h-[400px] flex items-center justify-center"><LoadingSpinner size="md" /></div>}>
-              <RadarChart data={defaultRadarData} />
+              <RadarChart data={defaultRadarData} size={400} />
             </Suspense>
           </div>
         </div>
