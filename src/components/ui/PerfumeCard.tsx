@@ -11,6 +11,9 @@ interface PerfumeCardProps {
   imageUrl?: string
   description?: string
   isSafe?: boolean
+  isSelected?: boolean
+  onSelect?: () => void
+  selectionType?: 'liked' | 'disliked'
 }
 
 export function PerfumeCard({ 
@@ -22,7 +25,10 @@ export function PerfumeCard({
   originalPrice = null,
   imageUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuALBOCEY2KBnfmkKMp5T6wk7_tpNpYd3gxmLv44JaVnWWHheh5gIzBLiaDI5fKGIARWSWatCeEb4azL5A17HBLlqMqHVuK3B3mVJP3jO-BI7w6oAg5ou-jeK7DuIMj6Fd_QONDQwXlpOjjSEcE84Knt_5z4mBLf1A7QxpZMHAyHOw0YtNyEweRUfJ7Tsxs967MWYSrjlI3dDLoQqWt7pg8oDqHBhO1T_uX29W1QDSJ9EaqoM6FdQ8hSW7f4MY2a-H26q7iDJrV4WnI3',
   description = 'تولیفة ساحرة تجمع بین دهن العود الكمبودي والمسك الأسود.',
-  isSafe = true
+  isSafe = true,
+  isSelected = false,
+  onSelect,
+  selectionType = 'liked'
 }: PerfumeCardProps) {
   const getVariantConfig = () => {
     switch(variant) {
@@ -65,7 +71,18 @@ export function PerfumeCard({
   const config = getVariantConfig();
 
   return (
-    <div className="w-full max-w-sm bg-[#F2F0EB] rounded-2xl shadow-[0_0_20px_rgba(236,156,19,0.15)] overflow-hidden border border-[#5B4233]/5 transition-all duration-300 hover:shadow-[0_0_30px_rgba(236,156,19,0.25)] hover:scale-[1.01] group">
+    <div 
+      onClick={onSelect}
+      className={`w-full max-w-sm bg-[#F2F0EB] rounded-2xl shadow-[0_0_20px_rgba(236,156,19,0.15)] overflow-hidden border transition-all duration-300 hover:shadow-[0_0_30px_rgba(236,156,19,0.25)] hover:scale-[1.01] group ${
+        onSelect ? 'cursor-pointer' : ''
+      } ${
+        isSelected 
+          ? selectionType === 'liked'
+            ? 'border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.4)] ring-2 ring-green-500/20'
+            : 'border-4 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)] ring-2 ring-red-500/20'
+          : 'border border-[#5B4233]/5'
+      }`}
+    >
       {/* Top Badge */}
       {config.badge && (
         <div className="absolute top-4 right-4 z-20">
@@ -73,6 +90,17 @@ export function PerfumeCard({
             <span className="text-[18px]">{config.badgeIcon}</span>
             <span>{config.badge}</span>
           </div>
+        </div>
+      )}
+
+      {/* Selected Indicator */}
+      {isSelected && (
+        <div className={`absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${
+          selectionType === 'liked' ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+          <span className="text-white text-sm font-bold">
+            {selectionType === 'liked' ? '✅' : '❌'}
+          </span>
         </div>
       )}
 

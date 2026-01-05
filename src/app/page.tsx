@@ -60,7 +60,7 @@ export default function Home() {
               <CTAButton 
                 variant="primary" 
                 size="lg" 
-                href="/quiz/step1-symptoms"
+                href="/quiz"
                 className="text-base md:text-lg px-12 md:px-16 py-6 mx-auto shadow-button"
               >
                 ابدأ الاختبار المجاني

@@ -1,15 +1,14 @@
 {
-  "name": "Ask Seba - اكتشف ذوقك العطري",
+  "name": "Ask Seba - عطرك المثالي",
   "short_name": "Ask Seba",
-  "description": "اكتشف العطر المثالي لك بناءً على ذوقك وحساسياتك",
+  "description": "اكتشف عطرك المثالي في 3 دقائق",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F2F0EB",
   "theme_color": "#c0841a",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
   "lang": "ar",
   "dir": "rtl",
-  "categories": ["shopping", "lifestyle"],
   "icons": [
     {
       "src": "/pwa-192.png",
@@ -22,29 +21,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ],
-  "screenshots": [],
-  "shortcuts": [
-    {
-      "name": "لوحة التحكم",
-      "short_name": "لوحة التحكم",
-      "description": "عرض لوحة التحكم",
-      "url": "/dashboard",
-      "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "بحث",
-      "short_name": "بحث",
-      "description": "البحث عن عطور",
-      "url": "/search",
-      "icons": [{ "src": "/pwa-192.png", "sizes": "192x192" }]
     }
   ]
 }

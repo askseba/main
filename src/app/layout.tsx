@@ -3,6 +3,7 @@ import { Noto_Sans_Arabic, Manrope } from "next/font/google";
 import "./globals.css";
 import { PWARegister } from "@/components/PWARegister";
 import { SessionProvider } from "@/components/SessionProvider";
+import { QuizProvider } from "@/contexts/QuizContext";
 
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
@@ -18,15 +19,17 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: {
-    default: "Ask Seba - اكتشف ذوقك العطري",
+    default: "Ask Seba - عطرك المثالي",
     template: "%s | Ask Seba",
   },
-  description: "اكتشف العطر المثالي لك بناءً على ذوقك وحساسياتك",
+  description: "اكتشف عطرك المثالي في 3 دقائق",
   manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/pwa-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/pwa-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
@@ -52,10 +55,15 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-status-bar-style": "default",
   },
   openGraph: {
-    title: "Ask Seba - اكتشف ذوقك العطري",
-    description: "اكتشف العطر المثالي لك بناءً على ذوقك وحساسياتك",
+    title: "Ask Seba - عطرك المثالي",
+    description: "اكتشف عطرك المثالي في 3 دقائق",
     type: "website",
     locale: "ar_SA",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ask Seba - عطرك المثالي",
+    description: "اكتشف عطرك المثالي في 3 دقائق",
   },
 };
 
@@ -79,8 +87,10 @@ export default function RootLayout({
         className={`${notoSansArabic.className} antialiased`}
       >
         <SessionProvider>
-          {children}
-          <PWARegister />
+          <QuizProvider>
+            {children}
+            <PWARegister />
+          </QuizProvider>
         </SessionProvider>
       </body>
     </html>
