@@ -1,5 +1,6 @@
 'use client'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { Suspense, useState } from 'react'
 import { StatsGrid, PerfumeGrid, FilterTabs } from '@/components/ui'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
@@ -71,11 +72,14 @@ export default function Dashboard() {
       <header className="bg-gradient-to-r from-[#c0841a] to-[#a07215] text-white p-8 rounded-b-3xl shadow-2xl mb-8">
         <div className="max-w-6xl mx-auto flex items-center gap-6 flex-wrap">
           {session.user?.image ? (
-            <img 
-              src={session.user.image} 
-              alt={session.user.name || 'Profile'}
-              className="w-20 h-20 rounded-full ring-4 ring-white/50 shadow-lg object-cover"
-            />
+            <div className="relative w-20 h-20 rounded-full ring-4 ring-white/50 shadow-lg overflow-hidden">
+              <Image 
+                src={session.user.image} 
+                alt={session.user.name || 'Profile'}
+                fill
+                className="object-cover"
+              />
+            </div>
           ) : (
             <div className="w-20 h-20 rounded-full ring-4 ring-white/50 shadow-lg bg-white/20 flex items-center justify-center text-3xl font-bold">
               {(session.user?.name || 'U')[0].toUpperCase()}
