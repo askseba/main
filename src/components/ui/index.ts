@@ -2,7 +2,8 @@
 // All UI components exported as named exports
 
 export { PerfumeCard } from './PerfumeCard'
-export { TimelineStage, PerfumeTimeline, type PerfumeTimelineProps } from './PerfumeTimeline'
+export { TimelineStage, PerfumeTimeline } from './PerfumeTimeline'
+export type { PerfumeTimelineProps } from './PerfumeTimeline'
 export { SpeedometerGauge } from './SpeedometerGauge'
 export { RadarChart } from './RadarChart'
 export { FilterSidebar } from './FilterSidebar'
