@@ -52,7 +52,28 @@ export default function PerfumeDetail({ params }: { params: { id: string } }) {
             </Suspense>
             
             <Suspense fallback={<div className="h-64 flex items-center justify-center"><LoadingSpinner size="sm" /></div>}>
-              <PerfumeTimeline variant={perfume.status} />
+              <PerfumeTimeline 
+                stages={[
+                  {
+                    score: perfume.score ?? 85,
+                    status: perfume.status ?? 'safe',
+                    stageName: 'الافتتاحية',
+                    notes: 'برغموت • فلفل • ليمون'
+                  },
+                  {
+                    score: (perfume.score ?? 85) - 5,
+                    status: perfume.status ?? 'safe',
+                    stageName: 'القلب',
+                    notes: 'لافندر • باتشولي • جيرانيوم'
+                  },
+                  {
+                    score: (perfume.score ?? 85) + 5,
+                    status: perfume.status ?? 'safe',
+                    stageName: 'القاعدة',
+                    notes: 'أمبروكسان • أرز • فيتيفر'
+                  }
+                ]}
+              />
             </Suspense>
             
             {/* CTA Buttons */}
