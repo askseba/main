@@ -122,7 +122,6 @@ export default function Home() {
                     title={perfume.name}
                     brand={perfume.brand}
                     matchPercentage={perfume.matchPercentage || perfume.score || 0}
-                    price={perfume.price}
                     imageUrl={perfume.image}
                     isSafe={perfume.isSafe ?? (perfume.matchPercentage || perfume.score || 0) >= 80}
                   />

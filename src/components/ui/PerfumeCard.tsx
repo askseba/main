@@ -1,13 +1,12 @@
 'use client'
 import React from 'react'
+import { BarChart3 } from 'lucide-react'
 
 interface PerfumeCardProps {
   variant?: 'bestseller' | 'on-sale' | 'just-arrived'
   title?: string
   brand?: string
   matchPercentage?: number
-  price?: number
-  originalPrice?: number | null
   imageUrl?: string
   description?: string
   isSafe?: boolean
@@ -21,8 +20,6 @@ export function PerfumeCard({
   title = 'عود ملكي فاخر',
   brand = 'أطيار',
   matchPercentage = 90,
-  price = 450,
-  originalPrice = null,
   imageUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuALBOCEY2KBnfmkKMp5T6wk7_tpNpYd3gxmLv44JaVnWWHheh5gIzBLiaDI5fKGIARWSWatCeEb4azL5A17HBLlqMqHVuK3B3mVJP3jO-BI7w6oAg5ou-jeK7DuIMj6Fd_QONDQwXlpOjjSEcE84Knt_5z4mBLf1A7QxpZMHAyHOw0YtNyEweRUfJ7Tsxs967MWYSrjlI3dDLoQqWt7pg8oDqHBhO1T_uX29W1QDSJ9EaqoM6FdQ8hSW7f4MY2a-H26q7iDJrV4WnI3',
   description = 'تولیفة ساحرة تجمع بین دهن العود الكمبودي والمسك الأسود.',
   isSafe = true,
@@ -34,34 +31,22 @@ export function PerfumeCard({
     switch(variant) {
       case 'bestseller':
         return {
-          badge: 'الأكثر مبيعاً',
-          badgeColor: 'bg-[#c0841a] text-[#291d12]',
-          badgeIcon: '✓',
           matchColor: matchPercentage >= 90 ? 'text-green-600' : matchPercentage >= 80 ? 'text-orange-600' : 'text-red-600',
           matchBg: matchPercentage >= 90 ? 'bg-green-600' : matchPercentage >= 80 ? 'bg-orange-600' : 'bg-red-600'
         };
       case 'on-sale':
         return {
-          badge: 'تخفيضات',
-          badgeColor: 'bg-[#c0841a] text-[#221c11]',
-          badgeIcon: '🏷',
           matchColor: matchPercentage >= 80 ? 'text-orange-600' : 'text-yellow-600',
           matchBg: matchPercentage >= 80 ? 'bg-orange-600' : 'bg-yellow-600'
         };
       case 'just-arrived':
         return {
-          badge: 'وصل حديثاً',
-          badgeColor: 'bg-[#c0841a] text-[#221c11]',
-          badgeIcon: '✨',
           matchColor: matchPercentage >= 70 ? 'text-yellow-600' : 'text-red-600',
           matchBg: matchPercentage >= 70 ? 'bg-yellow-600' : 'bg-red-600',
           isLowMatch: matchPercentage < 70
         };
       default:
         return {
-          badge: null,
-          badgeColor: '',
-          badgeIcon: '',
           matchColor: 'text-green-600',
           matchBg: 'bg-green-600'
         };
@@ -73,7 +58,22 @@ export function PerfumeCard({
   return (
     <div 
       onClick={onSelect}
-      className={`w-full max-w-sm bg-[#F2F0EB] rounded-2xl shadow-[0_0_20px_rgba(236,156,19,0.15)] overflow-hidden border transition-all duration-300 hover:shadow-[0_0_30px_rgba(236,156,19,0.25)] hover:scale-[1.01] group ${
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      aria-label={
+        onSelect
+          ? typeof matchPercentage === 'number'
+            ? `${title} - نسبة التطابق ${matchPercentage}%`
+            : title
+          : undefined
+      }
+      onKeyDown={onSelect ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      } : undefined}
+      className={`w-full max-w-sm bg-[#F2F0EB] rounded-2xl shadow-[0_0_20px_rgba(236,156,19,0.15)] overflow-hidden border transition-all duration-300 hover:shadow-[0_0_30px_rgba(236,156,19,0.25)] hover:scale-[1.01] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
         onSelect ? 'cursor-pointer' : ''
       } ${
         isSelected 
@@ -83,15 +83,6 @@ export function PerfumeCard({
           : 'border border-[#5B4233]/5'
       }`}
     >
-      {/* Top Badge */}
-      {config.badge && (
-        <div className="absolute top-4 right-4 z-20">
-          <div className={`${config.badgeColor} font-bold text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-1`}>
-            <span className="text-[18px]">{config.badgeIcon}</span>
-            <span>{config.badge}</span>
-          </div>
-        </div>
-      )}
 
       {/* Selected Indicator */}
       {isSelected && (
@@ -165,32 +156,17 @@ export function PerfumeCard({
 
         {/* Title */}
         <div className="flex flex-col gap-1">
-          <h3 className="text-2xl font-bold text-[#5B4233] leading-tight">{title}</h3>
+          <h3 className="text-2xl font-bold text-[#5B4233] leading-tight line-clamp-2 overflow-hidden">{title}</h3>
           <p className="text-[#5B4233]/70 text-sm line-clamp-2 leading-relaxed">{description}</p>
         </div>
 
         <div className="h-px w-full bg-[#5B4233]/10 my-1"></div>
 
-        {/* Price & Actions */}
-        <div className="flex items-center justify-between gap-4 mt-1">
-          <div className="flex flex-col">
-            {originalPrice && (
-              <span className="text-xs text-[#5B4233]/50 line-through decoration-red-500/50">
-                {originalPrice} ر.س
-              </span>
-            )}
-            <span className="text-xl font-bold text-[#b0720a]">
-              {price} <span className="text-sm font-normal text-[#5B4233]/70">ر.س</span>
-            </span>
-          </div>
-          
+        {/* Action Button */}
+        <div className="flex items-center justify-center mt-1">
           <button className="flex-1 h-12 bg-[#c0841a] hover:bg-[#c0841a]/90 text-[#291d12] rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_4px_12px_rgba(236,156,19,0.3)]">
-            <span>إضافة للسلة</span>
-            <span className="text-[20px]">🛍</span>
-          </button>
-          
-          <button className="w-12 h-12 rounded-full border border-[#5B4233]/10 bg-[#5B4233]/5 flex items-center justify-center text-[#5B4233] hover:bg-[#5B4233]/10 hover:text-[#b0720a] transition-colors active:scale-95">
-            <span className="text-[20px]">♡</span>
+            <BarChart3 className="w-5 h-5" />
+            <span>أضف للتحليل</span>
           </button>
         </div>
 

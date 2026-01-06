@@ -33,10 +33,10 @@ const defaultData: QuizData = {
 }
 
 export function QuizProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage if available
+  // Initialize from sessionStorage if available (session persistence)
   const [data, setData] = useState<QuizData>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('quiz-data')
+      const saved = sessionStorage.getItem('quizData')
       if (saved) {
         try {
           const parsed = JSON.parse(saved)
@@ -57,10 +57,10 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     return defaultData
   })
 
-  // Save to localStorage whenever data changes
+  // Save to sessionStorage whenever data changes (session persistence)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('quiz-data', JSON.stringify(data))
+      sessionStorage.setItem('quizData', JSON.stringify(data))
     }
   }, [data])
 
@@ -74,22 +74,19 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const clearQuiz = () => {
     setData(defaultData)
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('quiz-data')
-      localStorage.removeItem('step1-liked')
-      localStorage.removeItem('quiz-disliked')
-      localStorage.removeItem('quiz-allergy')
+      sessionStorage.removeItem('quizData')
     }
   }
 
   const saveToLocalStorage = () => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('quiz-data', JSON.stringify(data))
+      sessionStorage.setItem('quizData', JSON.stringify(data))
     }
   }
 
   const loadFromLocalStorage = () => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('quiz-data')
+      const saved = sessionStorage.getItem('quizData')
       if (saved) {
         try {
           const parsed = JSON.parse(saved)

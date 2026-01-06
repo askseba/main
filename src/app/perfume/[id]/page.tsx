@@ -2,6 +2,7 @@
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { SmartImage } from '@/components/ui/SmartImage'
+import { ShareButton } from '@/components/ui/ShareButton'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { getPerfumeById, normalizePerfume, perfumes } from '@/lib/data/perfumes'
 
@@ -96,6 +97,15 @@ export default function PerfumeDetail({ params }: { params: { id: string } }) {
               >
                 ♡ حفظ
               </button>
+            </div>
+            
+            {/* Share Button */}
+            <div className="flex justify-center mt-6">
+              <ShareButton 
+                title={`${perfume.name} - ${perfume.brand}`}
+                text={`صبا اختارت لي ${perfume.name} بنسبة ${perfume.score ?? 85}% 🎯 ✅ آمن تماماً`}
+                variant="secondary"
+              />
             </div>
           </div>
         </div>

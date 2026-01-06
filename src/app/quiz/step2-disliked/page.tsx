@@ -1,68 +1,82 @@
 "use client"
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { PerfumeCard } from '@/components/ui/PerfumeCard'
-import { CTAButton } from '@/components/ui/CTAButton'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { perfumes } from '@/lib/data/perfumes'
-import { useQuiz } from '@/contexts/QuizContext'
+import { PerfumeCard } from '@/components/ui/PerfumeCard'
+import { PerfumeSearchResult } from '@/components/ui/PerfumeSearchResult'
+import { CTAButton } from '@/components/ui/CTAButton'
 
 const MIN_SELECTIONS = 3
-const MAX_SELECTIONS = 6
-
-// Framer Motion variants
-const gridContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.1
-    }
-  }
-}
-
-const cardItem = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: index * 0.05,
-      duration: 0.4
-    }
-  })
-}
+const MAX_SELECTIONS = 12
 
 export default function Step2DislikedPage() {
   const router = useRouter()
-  const { data, setStep } = useQuiz()
-  const [selectedPerfumes, setSelectedPerfumes] = useState<string[]>(() => data.step2_disliked || [])
+  const [selectedPerfumes, setSelectedPerfumes] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('step2_disliked')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('Failed to load step2 disliked:', e)
+        }
+      }
+    }
+    return []
+  })
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
 
-  const togglePerfume = (id: string) => {
+  // Save to sessionStorage whenever selectedPerfumes changes
+  useEffect(() => {
+    sessionStorage.setItem('step2_disliked', JSON.stringify(selectedPerfumes))
+  }, [selectedPerfumes])
+
+  // Debounce search term (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [searchTerm])
+
+  // Calculate loading state based on search term vs debounced term
+  const isLoading = searchTerm !== debouncedSearchTerm
+
+  // Search functionality - useMemo
+  const searchResults = useMemo(() => {
+    if (!debouncedSearchTerm.trim()) return []
+    return perfumes.filter(p =>
+      p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      p.brand.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    )
+  }, [debouncedSearchTerm])
+
+  const togglePerfume = useCallback((id: string) => {
     setSelectedPerfumes(prev => {
-      const newSelection = prev.includes(id)
-        ? prev.filter(p => p !== id)
-        : prev.length < MAX_SELECTIONS
-        ? [...prev, id]
-        : prev
-      
-      // Update context
-      setStep('step2_disliked', newSelection)
-      return newSelection
+      if (prev.includes(id)) {
+        return prev.filter(p => p !== id)
+      } else if (prev.length < MAX_SELECTIONS) {
+        return [...prev, id]
+      }
+      return prev
     })
-  }
+  }, [])
 
   const handleNext = () => {
     if (selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS) {
-      // Data already saved in context
+      sessionStorage.setItem('quiz_step2', JSON.stringify(selectedPerfumes))
       router.push('/quiz/step3-allergy')
     }
   }
 
   const canProceed = selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS
-  const isMaxReached = selectedPerfumes.length >= MAX_SELECTIONS
+  const selectedPerfumesList = perfumes.filter(p => selectedPerfumes.includes(p.id))
+  const displayedPerfumes = searchTerm ? searchResults : perfumes.slice(0, 12)
 
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
@@ -75,68 +89,118 @@ export default function Step2DislikedPage() {
         </div>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
+        <div className="text-center mb-8">
           <h1 className="font-tajawal-bold text-4xl md:text-5xl text-brown-text mb-4">
             ❌ العطور التي لا تعجبني
           </h1>
           <p className="text-xl text-brown-text/70 max-w-2xl mx-auto">
-            اختر 3-6 عطور لا تعجبك
+            اختر 3-12 عطور لا تعجبك
           </p>
-        </motion.div>
+        </div>
 
         {/* Selection Counter Badge */}
         {selectedPerfumes.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center mb-8"
-          >
+          <div className="text-center mb-8">
             <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-full transition-all ${
               canProceed 
                 ? 'bg-red-600/10 border-2 border-red-600' 
-                : isMaxReached
-                ? 'bg-orange-600/10 border-2 border-orange-600'
                 : 'bg-primary/10 border-2 border-primary'
             }`}>
               <span className={`font-tajawal-bold text-lg ${
-                canProceed ? 'text-red-700' : isMaxReached ? 'text-orange-700' : 'text-brown-text'
+                canProceed ? 'text-red-700' : 'text-brown-text'
               }`}>
-                {selectedPerfumes.length} / {MIN_SELECTIONS}-{MAX_SELECTIONS}
+                اخترت {selectedPerfumes.length}/{MAX_SELECTIONS}
               </span>
               {canProceed && (
                 <span className="text-red-600 text-xl">✓</span>
               )}
-              {isMaxReached && (
-                <span className="text-orange-600 text-sm">(الحد الأقصى)</span>
-              )}
             </div>
-          </motion.div>
+          </div>
         )}
 
-        {/* Perfumes Grid */}
-        <motion.div
-          variants={gridContainer}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
-        >
-          {perfumes.slice(0, 12).map((perfume, index) => (
-            <motion.div
-              key={perfume.id}
-              variants={cardItem}
-              custom={index}
-            >
+        {/* Search Bar */}
+        <div className="mb-8">
+          <div className="relative">
+            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brown-text/50 w-5 h-5" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="ابحث عن عطر..."
+              className="w-full px-12 py-4 border-2 border-brown-text/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-brown-text placeholder-brown-text/50"
+            />
+            {isLoading && (
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Empty State */}
+        {!searchTerm && searchResults.length === 0 && (
+          <div className="text-center py-12 text-brown-text/60">
+            <Search className="w-16 h-16 mx-auto mb-4 text-brown-text/30" />
+            <h3 className="text-lg font-medium mb-2">اكتب اسم عطر للبدء</h3>
+            <p className="text-sm">جرب &quot;Dior&quot; أو &quot;Chanel&quot; أو &quot;Oud&quot;</p>
+          </div>
+        )}
+
+        {/* Search Results (Text-only) */}
+        {searchTerm && searchResults.length > 0 && (
+          <div className="space-y-2 mb-8 max-h-96 overflow-y-auto">
+            {searchResults.map((perfume) => (
+              <PerfumeSearchResult
+                key={perfume.id}
+                perfume={{
+                  id: perfume.id,
+                  name: perfume.name,
+                  brand: perfume.brand,
+                  matchPercentage: perfume.matchPercentage ?? perfume.score,
+                  isSafe: perfume.isSafe
+                }}
+                isSelected={selectedPerfumes.includes(perfume.id)}
+                onSelect={() => togglePerfume(perfume.id)}
+                disabled={!selectedPerfumes.includes(perfume.id) && selectedPerfumes.length >= MAX_SELECTIONS}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Selected Perfumes (Full Cards with Images) */}
+        {selectedPerfumesList.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-brown-text mb-4">العطور المختارة</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {selectedPerfumesList.map((perfume) => (
+                <PerfumeCard
+                  key={perfume.id}
+                  variant={perfume.variant}
+                  title={perfume.name}
+                  brand={perfume.brand}
+                  matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
+                  imageUrl={perfume.image}
+                  description={perfume.description}
+                  isSafe={perfume.isSafe}
+                  isSelected={true}
+                  onSelect={() => togglePerfume(perfume.id)}
+                  selectionType="disliked"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Default Grid (when no search) */}
+        {!searchTerm && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {displayedPerfumes.map((perfume) => (
               <PerfumeCard
+                key={perfume.id}
                 variant={perfume.variant}
                 title={perfume.name}
                 brand={perfume.brand}
                 matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
-                price={perfume.price}
-                originalPrice={perfume.originalPrice}
                 imageUrl={perfume.image}
                 description={perfume.description}
                 isSafe={perfume.isSafe}
@@ -144,9 +208,9 @@ export default function Step2DislikedPage() {
                 onSelect={() => togglePerfume(perfume.id)}
                 selectionType="disliked"
               />
-            </motion.div>
-          ))}
-        </motion.div>
+            ))}
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-8 border-t border-brown-text/10">
@@ -180,16 +244,11 @@ export default function Step2DislikedPage() {
         </div>
 
         {/* Help Text */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center mt-8"
-        >
+        <div className="text-center mt-8">
           <p className="text-sm text-brown-text/60">
             💡 يمكنك تخطي هذه الخطوة إذا لم تكن هناك عطور تكرهها
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   )

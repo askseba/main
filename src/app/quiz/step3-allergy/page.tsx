@@ -1,7 +1,8 @@
 "use client"
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Step3Allergy } from '@/components/quiz/Step3Allergy'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useQuiz } from '@/contexts/QuizContext'
 
 interface AllergyData {
@@ -13,6 +14,7 @@ interface AllergyData {
 export default function Step3AllergyPage() {
   const router = useRouter()
   const { data, setStep } = useQuiz()
+  const [isPending, startTransition] = useTransition()
   
   // Convert context format to component format
   const [allergy, setAllergy] = useState<AllergyData>(() => ({
@@ -32,16 +34,24 @@ export default function Step3AllergyPage() {
   }
 
   const handleNext = () => {
-    // Data already saved in context
-    router.push('/results')
+    startTransition(() => {
+      router.push('/results')
+    })
   }
 
   const handleBack = () => {
-    router.push('/quiz/step2-disliked')
+    startTransition(() => {
+      router.push('/quiz/step2-disliked')
+    })
   }
 
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
+      {isPending && (
+        <div className="fixed inset-0 bg-cream-bg/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <LoadingSpinner type={3} message="جاري الانتقال..." size="lg" />
+        </div>
+      )}
       <div className="container mx-auto px-4 py-12">
         {/* Progress Indicator - Step 3/3 */}
         <div className="flex items-center justify-center gap-2 mb-8">

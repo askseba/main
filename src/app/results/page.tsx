@@ -321,8 +321,6 @@ export default function ResultsPage() {
                         title={perfume.name}
                         brand={perfume.brand}
                         matchPercentage={perfume.personalizedMatch ?? perfume.matchPercentage ?? perfume.score ?? 0}
-                        price={perfume.price}
-                        originalPrice={perfume.originalPrice}
                         imageUrl={perfume.image}
                         description={perfume.description}
                         isSafe={perfume.isSafe}

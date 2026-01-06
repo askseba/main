@@ -5,7 +5,7 @@ import { Search, Bookmark, Heart, Package } from 'lucide-react'
 interface CounterBadgeProps {
   variant?: 'search' | 'bookmarks' | 'matches' | 'samples'
   count: number
-  label: string
+  label?: string
   icon?: React.ReactNode
   className?: string
   onClick?: () => void
@@ -73,7 +73,7 @@ export function CounterBadge({
         <span className="text-2xl font-tajawal-bold block text-brown-text">
           {count}
         </span>
-        <span className="text-xs text-brown-text/60">{label}</span>
+        {label && <span className="text-xs text-brown-text/60">{label}</span>}
       </div>
     </div>
   )
