@@ -119,6 +119,11 @@ export default function Step1FavoritesPage() {
     }
   }, [selectedPerfumes])
 
+  // Fallback for hydration safety
+  const displayedPerfumes = useMemo(() => {
+    return searchTerm ? searchResults.slice(0, 3) : []
+  }, [searchTerm, searchResults])
+
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
       <div className="container mx-auto px-4 py-12">
@@ -185,6 +190,16 @@ export default function Step1FavoritesPage() {
             <CTAButton onClick={loadPerfumes} variant="primary">
               إعادة المحاولة
             </CTAButton>
+          </div>
+        ) : displayedPerfumes.length === 0 && !searchTerm ? (
+          <div className="text-center py-20 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl p-12">
+            <Search className="w-20 h-20 mx-auto mb-6 text-primary/50" />
+            <h3 className="text-2xl font-bold text-brown-text mb-3">
+              ابدأ البحث عن عطرك المفضل
+            </h3>
+            <p className="text-lg text-brown-text/70 mb-8 max-w-md mx-auto">
+              اكتب اسم العطر أو الماركة مثل: Dior، Chanel، Oud، Jasmine
+            </p>
           </div>
         ) : (
           <>

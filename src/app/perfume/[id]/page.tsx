@@ -1,4 +1,3 @@
-'use client'
 import dynamic from 'next/dynamic'
 import { Suspense } from 'react'
 import { SmartImage } from '@/components/ui/SmartImage'
@@ -16,8 +15,14 @@ const PerfumeTimeline = dynamic(() => import('@/components/ui/PerfumeTimeline').
   loading: () => <div className="h-64 flex items-center justify-center"><LoadingSpinner size="sm" /></div>
 })
 
-export default function PerfumeDetail({ params }: { params: { id: string } }) {
-  const perfumeData = getPerfumeById(params.id) || perfumes[0] // Fallback to first perfume
+interface PerfumeDetailProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
+  // ✅ Server Component مع await
+  const { id } = await params
+  const perfumeData = getPerfumeById(id) || perfumes[0] // Fallback to first perfume
   const perfume = normalizePerfume(perfumeData)
 
   return (
