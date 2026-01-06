@@ -27,6 +27,8 @@ export default function Step2DislikedPage() {
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Save to sessionStorage whenever selectedPerfumes changes
   useEffect(() => {
@@ -45,15 +47,47 @@ export default function Step2DislikedPage() {
   }, [searchTerm])
 
   // Calculate loading state based on search term vs debounced term
-  const isLoading = searchTerm !== debouncedSearchTerm
+  const isSearchLoading = searchTerm !== debouncedSearchTerm
+
+  // Load perfumes with error handling
+  const loadPerfumes = useCallback(() => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      // Validate perfumes array
+      if (!perfumes || !Array.isArray(perfumes)) {
+        throw new Error('بيانات العطور غير متاحة')
+      }
+      if (perfumes.length === 0) {
+        throw new Error('لا توجد عطور متاحة')
+      }
+      setIsLoading(false)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'حدث خطأ أثناء تحميل العطور. يرجى المحاولة مرة أخرى.'
+      setError(errorMessage)
+      setIsLoading(false)
+      console.error('Error loading perfumes:', err)
+    }
+  }, [])
+
+  // Load perfumes on mount and when debouncedSearchTerm changes
+  useEffect(() => {
+    loadPerfumes()
+  }, [loadPerfumes, debouncedSearchTerm])
 
   // Search functionality - useMemo
   const searchResults = useMemo(() => {
     if (!debouncedSearchTerm.trim()) return []
-    return perfumes.filter(p =>
-      p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      p.brand.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    )
+    try {
+      if (!perfumes || !Array.isArray(perfumes)) return []
+      return perfumes.filter(p =>
+        p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        p.brand.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      )
+    } catch (err) {
+      console.error('Error filtering perfumes:', err)
+      return []
+    }
   }, [debouncedSearchTerm])
 
   const togglePerfume = useCallback((id: string) => {
@@ -75,8 +109,24 @@ export default function Step2DislikedPage() {
   }
 
   const canProceed = selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS
-  const selectedPerfumesList = perfumes.filter(p => selectedPerfumes.includes(p.id))
-  const displayedPerfumes = searchTerm ? searchResults : perfumes.slice(0, 12)
+  const selectedPerfumesList = useMemo(() => {
+    try {
+      if (!perfumes || !Array.isArray(perfumes)) return []
+      return perfumes.filter(p => selectedPerfumes.includes(p.id))
+    } catch (err) {
+      console.error('Error filtering selected perfumes:', err)
+      return []
+    }
+  }, [selectedPerfumes])
+  const displayedPerfumes = useMemo(() => {
+    try {
+      if (!perfumes || !Array.isArray(perfumes)) return []
+      return searchTerm ? searchResults : perfumes.slice(0, 12)
+    } catch (err) {
+      console.error('Error getting displayed perfumes:', err)
+      return []
+    }
+  }, [searchTerm, searchResults])
 
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
@@ -129,7 +179,7 @@ export default function Step2DislikedPage() {
               placeholder="ابحث عن عطر..."
               className="w-full px-12 py-4 border-2 border-brown-text/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-brown-text placeholder-brown-text/50"
             />
-            {isLoading && (
+            {isSearchLoading && (
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
               </div>
@@ -193,23 +243,44 @@ export default function Step2DislikedPage() {
 
         {/* Default Grid (when no search) */}
         {!searchTerm && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {displayedPerfumes.map((perfume) => (
-              <PerfumeCard
-                key={perfume.id}
-                variant={perfume.variant}
-                title={perfume.name}
-                brand={perfume.brand}
-                matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
-                imageUrl={perfume.image}
-                description={perfume.description}
-                isSafe={perfume.isSafe}
-                isSelected={selectedPerfumes.includes(perfume.id)}
-                onSelect={() => togglePerfume(perfume.id)}
-                selectionType="disliked"
-              />
-            ))}
-          </div>
+          <>
+            {error ? (
+              <div className="text-center py-8">
+                <p className="text-red-500 mb-4">{error}</p>
+                <CTAButton onClick={loadPerfumes} variant="primary">
+                  إعادة المحاولة
+                </CTAButton>
+              </div>
+            ) : isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-square bg-gray-200 rounded-lg" />
+                    <div className="h-4 bg-gray-200 rounded mt-4 w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded mt-2 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {displayedPerfumes.map((perfume) => (
+                  <PerfumeCard
+                    key={perfume.id}
+                    variant={perfume.variant}
+                    title={perfume.name}
+                    brand={perfume.brand}
+                    matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
+                    imageUrl={perfume.image}
+                    description={perfume.description}
+                    isSafe={perfume.isSafe}
+                    isSelected={selectedPerfumes.includes(perfume.id)}
+                    onSelect={() => togglePerfume(perfume.id)}
+                    selectionType="disliked"
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Navigation */}

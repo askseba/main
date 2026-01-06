@@ -13,7 +13,7 @@ export interface Perfume {
   originalPrice?: number | null
   description?: string
   isSafe?: boolean
-  variant?: 'bestseller' | 'on-sale' | 'just-arrived'
+  variant?: 'on-sale' | 'just-arrived'
 }
 
 export interface RadarDataPoint {
@@ -42,7 +42,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 450,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر فاخر يجمع بين الحمضيات والأخشاب'
   },
   {
@@ -55,7 +54,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 550,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر ملكي بلمسات من الأناناس والبرغموت'
   },
   {
@@ -68,7 +66,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 650,
     isSafe: true,
-    variant: 'bestseller',
     description: 'مزيج فاخر من العود والورد'
   },
   {
@@ -81,7 +78,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 480,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر قوي بلمسات من الفلفل والبرغموت'
   },
   {
@@ -94,7 +90,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 520,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر ترابي بلمسات من البرتقال والفلين'
   },
   
@@ -161,7 +156,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 620,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر خشبي بلمسات من الصندل والفانيليا'
   },
   {
@@ -174,7 +168,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 580,
     isSafe: true,
-    variant: 'bestseller',
     description: 'نسخة محدودة من Aventus الكلاسيكي'
   },
   {
@@ -187,7 +180,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 720,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر عماني فاخر بلمسات من اللبان والورد'
   },
   {
@@ -226,7 +218,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 650,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر بريطاني كلاسيكي بلمسات من الخزامى'
   },
   {
@@ -252,7 +243,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 690,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر فاخر بلمسات من الفانيليا والكاكاو'
   },
   {
@@ -278,7 +268,6 @@ export const perfumes: Perfume[] = [
     status: 'safe',
     price: 780,
     isSafe: true,
-    variant: 'bestseller',
     description: 'عطر إيطالي فاخر بلمسات من العود والمسك'
   }
 ]
@@ -294,7 +283,7 @@ export function getPerfumesByStatus(status: 'safe' | 'warning' | 'danger'): Perf
 
 export function getFeaturedPerfumes(limit: number = 3): Perfume[] {
   return perfumes
-    .filter(p => p.variant === 'bestseller' && p.score && p.score >= 85)
+    .filter(p => p.score && p.score >= 85)
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .slice(0, limit)
 }

@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
 import { PerfumeCard } from '@/components/ui/PerfumeCard'
@@ -27,6 +27,7 @@ export default function ResultsPage() {
   const [sortBy, setSortBy] = useState<'match' | 'price-low' | 'price-high' | 'rating'>('match')
   const [currentPage, setCurrentPage] = useState(1)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [isFiltering, setIsFiltering] = useState(false)
   const itemsPerPage = 12
 
   // Personalized Filter + Sort Logic
@@ -137,6 +138,15 @@ export default function ResultsPage() {
     setCurrentPage(1)
   }
 
+  // Loading state for filters
+  useEffect(() => {
+    setIsFiltering(true)
+    const timer = setTimeout(() => {
+      setIsFiltering(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [filters, sortBy, searchQuery, currentPage])
+
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
       <div className="container mx-auto px-4 py-12">
@@ -152,7 +162,11 @@ export default function ResultsPage() {
           <p className="text-xl text-brown-text/70 mb-2">
             {filteredPerfumes.length === 0 
               ? "لا توجد نتائج مطابقة" 
-              : `تم العثور على ${filteredPerfumes.length} عطر مثالي لك`
+              : filteredPerfumes.length === 1
+              ? "تم العثور على عطر مثالي لك"
+              : filteredPerfumes.length === 2
+              ? "تم العثور على عطرين مثاليين لك"
+              : `تم العثور على ${filteredPerfumes.length} عطور مثالية لك`
             }
           </p>
           {(quizData.step1_liked.length > 0 || quizData.step2_disliked.length > 0 || quizData.step3_allergy.ingredients.length > 0) && (
@@ -170,6 +184,7 @@ export default function ResultsPage() {
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-brown-text/50 w-5 h-5" />
               <input
                 type="text"
+                aria-label="ابحث عن العطور بالاسم أو العلامة التجارية"
                 placeholder="ابحث بالاسم أو العلامة التجارية..."
                 value={searchQuery}
                 onChange={(e) => {
@@ -308,26 +323,38 @@ export default function ResultsPage() {
             ) : (
               <>
                 {/* Results Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                  {paginatedPerfumes.map((perfume, index) => (
-                    <motion.div
-                      key={perfume.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <PerfumeCard 
-                        variant={perfume.variant}
-                        title={perfume.name}
-                        brand={perfume.brand}
-                        matchPercentage={perfume.personalizedMatch ?? perfume.matchPercentage ?? perfume.score ?? 0}
-                        imageUrl={perfume.image}
-                        description={perfume.description}
-                        isSafe={perfume.isSafe}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
+                {isFiltering ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="aspect-square bg-gray-200 rounded-lg" />
+                        <div className="h-4 bg-gray-200 rounded mt-4 w-3/4" />
+                        <div className="h-4 bg-gray-200 rounded mt-2 w-1/2" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    {paginatedPerfumes.map((perfume, index) => (
+                      <motion.div
+                        key={perfume.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <PerfumeCard 
+                          variant={perfume.variant}
+                          title={perfume.name}
+                          brand={perfume.brand}
+                          matchPercentage={perfume.personalizedMatch ?? perfume.matchPercentage ?? perfume.score ?? 0}
+                          imageUrl={perfume.image}
+                          description={perfume.description}
+                          isSafe={perfume.isSafe}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (

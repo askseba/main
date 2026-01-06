@@ -3,7 +3,7 @@ import React from 'react'
 import { BarChart3 } from 'lucide-react'
 
 interface PerfumeCardProps {
-  variant?: 'bestseller' | 'on-sale' | 'just-arrived'
+  variant?: 'on-sale' | 'just-arrived'
   title?: string
   brand?: string
   matchPercentage?: number
@@ -16,7 +16,7 @@ interface PerfumeCardProps {
 }
 
 export function PerfumeCard({ 
-  variant = 'bestseller',
+  variant = 'on-sale',
   title = 'عود ملكي فاخر',
   brand = 'أطيار',
   matchPercentage = 90,
@@ -29,11 +29,6 @@ export function PerfumeCard({
 }: PerfumeCardProps) {
   const getVariantConfig = () => {
     switch(variant) {
-      case 'bestseller':
-        return {
-          matchColor: matchPercentage >= 90 ? 'text-green-600' : matchPercentage >= 80 ? 'text-orange-600' : 'text-red-600',
-          matchBg: matchPercentage >= 90 ? 'bg-green-600' : matchPercentage >= 80 ? 'bg-orange-600' : 'bg-red-600'
-        };
       case 'on-sale':
         return {
           matchColor: matchPercentage >= 80 ? 'text-orange-600' : 'text-yellow-600',

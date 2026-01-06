@@ -34,7 +34,7 @@ export function SmartImage({
         className={`${className} bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400 rounded-xl`}
         style={{ width, height }}
       >
-        <span className="text-2xl">عطر</span>
+        <span className="text-2xl">{alt}</span>
       </div>
     )
   }
