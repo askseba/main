@@ -11,6 +11,7 @@ interface RadarPoint {
 interface RadarChartProps {
   data?: RadarPoint[]
   size?: number
+  className?: string
 }
 
 const DEFAULT_SAMPLE_DATA: RadarPoint[] = [
@@ -22,7 +23,7 @@ const DEFAULT_SAMPLE_DATA: RadarPoint[] = [
   { name: "توابل", score: 70, color: "#EC4899" },
 ]
 
-export function RadarChart({ data, size = 400 }: RadarChartProps) {
+export function RadarChart({ data, size = 400, className = "" }: RadarChartProps) {
   const points = useMemo(() => {
     const dataset = data || DEFAULT_SAMPLE_DATA
     const radius = size * 0.4
@@ -40,17 +41,31 @@ export function RadarChart({ data, size = 400 }: RadarChartProps) {
 
   const radius = size * 0.4
   const polygonPath = points.map(p => `${p.x},${p.y}`).join(" ")
+  
+  // Generate accessibility description
+  const accessibilityDescription = useMemo(() => {
+    const dataset = data || DEFAULT_SAMPLE_DATA
+    return dataset.map(p => `${p.name}: ${p.score}%`).join('، ')
+  }, [data])
 
   return (
-    <div className="w-[400px] h-[400px] flex items-center justify-center shadow-radar" dir="rtl">
+    <div 
+      className={`w-full max-w-[90vw] sm:max-w-[400px] aspect-square flex items-center justify-center shadow-radar mx-auto ${className}`}
+      dir="rtl"
+      role="img"
+      aria-label="رادار بصمة الذوق العطرية"
+      aria-describedby="radar-description"
+    >
       <svg 
-        width={size} 
-        height={size} 
+        width="100%" 
+        height="100%" 
         viewBox={`0 0 ${size} ${size}`}
         className="drop-shadow-lg"
-        aria-label="رادار تطابق العطور"
-        role="img"
+        preserveAspectRatio="xMidYMid meet"
       >
+        <desc id="radar-description">
+          {accessibilityDescription || "رادار يوضح توزيع العائلات العطرية المفضلة"}
+        </desc>
         {/* Grid - 5 levels */}
         {[1, 2, 3, 4, 5].map((level) => {
           const r = (radius * level) / 5
@@ -118,7 +133,7 @@ export function RadarChart({ data, size = 400 }: RadarChartProps) {
               y={point.y - 25}
               textAnchor="middle"
               fill="#5B4233"
-              fontSize="12"
+              fontSize="13"
               fontWeight="bold"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -131,7 +146,7 @@ export function RadarChart({ data, size = 400 }: RadarChartProps) {
               y={point.y + 5}
               textAnchor="middle"
               fill={point.color}
-              fontSize="14"
+              fontSize="15"
               fontWeight="bold"
             >
               {point.score}%

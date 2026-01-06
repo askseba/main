@@ -1,11 +1,13 @@
 'use client'
 import Image from 'next/image'
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useMemo } from 'react'
 import { StatsGrid, PerfumeGrid, FilterTabs } from '@/components/ui'
 import { RadarChart } from '@/components/ui/RadarChart'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { useQuiz } from '@/contexts/QuizContext'
+import { calculateScentProfile } from '@/lib/scent-analysis'
 import { 
   getFavoritesPerfumes, 
   getDislikedPerfumes, 
@@ -17,15 +19,15 @@ export default function Dashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('favorites')
+  const { data: quizData } = useQuiz()
 
-  const defaultRadarData = [
-    { name: "فلورال", score: 85, color: "#10B981" },
-    { name: "خشبي", score: 75, color: "#F59E0B" },
-    { name: "حمضيات", score: 30, color: "#EF4444" },
-    { name: "شرقي", score: 45, color: "#3B82F6" },
-    { name: "منعش", score: 60, color: "#8B5CF6" },
-    { name: "توابل", score: 70, color: "#EC4899" },
-  ]
+  // Calculate dynamic radar data from user's liked perfumes
+  const dynamicRadarData = useMemo(() => {
+    const likedIds = quizData.step1_liked || []
+    return calculateScentProfile(likedIds)
+  }, [quizData.step1_liked])
+
+  const hasQuizData = quizData.step1_liked && quizData.step1_liked.length > 0
 
   // Redirect to login if not authenticated
   if (status === 'unauthenticated') {
@@ -148,11 +150,20 @@ export default function Dashboard() {
         </div>
 
         {/* Radar Chart */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-cream-bg/50">
-          <h2 className="text-2xl font-bold text-brown-text mb-8 text-center">بصمتك العطرية</h2>
-          <div className="flex justify-center">
-            <Suspense fallback={<div className="w-[400px] h-[400px] flex items-center justify-center"><LoadingSpinner size="md" /></div>}>
-              <RadarChart data={defaultRadarData} size={400} />
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl border border-cream-bg/50">
+          <h2 className="text-xl sm:text-2xl font-bold text-brown-text mb-4 sm:mb-6 md:mb-8 text-center">بصمتك العطرية</h2>
+          {!hasQuizData && (
+            <p className="text-center text-brown-text/70 mb-4 sm:mb-6 text-base sm:text-lg px-4">
+              قم بإجراء الاختبار لرؤية بصمتك العطرية الشخصية
+            </p>
+          )}
+          <div className="flex justify-center px-2">
+            <Suspense fallback={
+              <div className="w-full max-w-[90vw] sm:max-w-[400px] aspect-square flex items-center justify-center">
+                <LoadingSpinner size="md" />
+              </div>
+            }>
+              <RadarChart data={dynamicRadarData} size={400} />
             </Suspense>
           </div>
         </div>
