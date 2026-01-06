@@ -118,15 +118,6 @@ export default function Step1FavoritesPage() {
       return []
     }
   }, [selectedPerfumes])
-  const displayedPerfumes = useMemo(() => {
-    try {
-      if (!perfumes || !Array.isArray(perfumes)) return []
-      return searchTerm ? searchResults : perfumes.slice(0, 12)
-    } catch (err) {
-      console.error('Error getting displayed perfumes:', err)
-      return []
-    }
-  }, [searchTerm, searchResults])
 
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
@@ -187,97 +178,72 @@ export default function Step1FavoritesPage() {
           </div>
         </div>
 
-        {/* Empty State */}
-        {!searchTerm && searchResults.length === 0 && (
-          <div className="text-center py-12 text-brown-text/60">
-            <Search className="w-16 h-16 mx-auto mb-4 text-brown-text/30" />
-            <h3 className="text-lg font-medium mb-2">اكتب اسم عطر للبدء</h3>
-            <p className="text-sm">جرب &quot;Dior&quot; أو &quot;Chanel&quot; أو &quot;Oud&quot;</p>
+        {/* Search-First UX */}
+        {error ? (
+          <div className="text-center py-8">
+            <p className="text-red-500 mb-4">{error}</p>
+            <CTAButton onClick={loadPerfumes} variant="primary">
+              إعادة المحاولة
+            </CTAButton>
           </div>
-        )}
-
-        {/* Search Results (Text-only) */}
-        {searchTerm && searchResults.length > 0 && (
-          <div className="space-y-2 mb-8 max-h-96 overflow-y-auto">
-            {searchResults.map((perfume) => (
-              <PerfumeSearchResult
-                key={perfume.id}
-                perfume={{
-                  id: perfume.id,
-                  name: perfume.name,
-                  brand: perfume.brand,
-                  matchPercentage: perfume.matchPercentage ?? perfume.score,
-                  isSafe: perfume.isSafe
-                }}
-                isSelected={selectedPerfumes.includes(perfume.id)}
-                onSelect={() => togglePerfume(perfume.id)}
-                disabled={!selectedPerfumes.includes(perfume.id) && selectedPerfumes.length >= MAX_SELECTIONS}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Selected Perfumes (Full Cards with Images) */}
-        {selectedPerfumesList.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-brown-text mb-4">العطور المختارة</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {selectedPerfumesList.map((perfume) => (
-                <PerfumeCard
-                  key={perfume.id}
-                  variant={perfume.variant}
-                  title={perfume.name}
-                  brand={perfume.brand}
-                  matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
-                  imageUrl={perfume.image}
-                  description={perfume.description}
-                  isSafe={perfume.isSafe}
-                  isSelected={true}
-                  onSelect={() => togglePerfume(perfume.id)}
-                  selectionType="liked"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Default Grid (when no search) */}
-        {!searchTerm && (
+        ) : (
           <>
-            {error ? (
-              <div className="text-center py-8">
-                <p className="text-red-500 mb-4">{error}</p>
-                <CTAButton onClick={loadPerfumes} variant="primary">
-                  إعادة المحاولة
-                </CTAButton>
-              </div>
-            ) : isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="aspect-square bg-gray-200 rounded-lg" />
-                    <div className="h-4 bg-gray-200 rounded mt-4 w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded mt-2 w-1/2" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {displayedPerfumes.map((perfume) => (
-                  <PerfumeCard
+            {/* Search Results - جميع المطابقات */}
+            {searchResults.length > 0 ? (
+              <div className="space-y-2 mb-8 max-h-96 overflow-y-auto">
+                {searchResults.map((perfume) => (
+                  <PerfumeSearchResult
                     key={perfume.id}
-                    variant={perfume.variant}
-                    title={perfume.name}
-                    brand={perfume.brand}
-                    matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
-                    imageUrl={perfume.image}
-                    description={perfume.description}
-                    isSafe={perfume.isSafe}
+                    perfume={{
+                      id: perfume.id,
+                      name: perfume.name,
+                      brand: perfume.brand,
+                      matchPercentage: perfume.matchPercentage ?? perfume.score,
+                      isSafe: perfume.isSafe
+                    }}
                     isSelected={selectedPerfumes.includes(perfume.id)}
                     onSelect={() => togglePerfume(perfume.id)}
-                    selectionType="liked"
+                    disabled={selectedPerfumes.length >= MAX_SELECTIONS}
                   />
                 ))}
+              </div>
+            ) : searchTerm ? (
+              <div className="text-center py-12 text-gray-500">
+                لا توجد عطور مطابقة لـ &quot;{searchTerm}&quot;
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl p-12">
+                <Search className="w-20 h-20 mx-auto mb-6 text-primary/50" />
+                <h3 className="text-2xl font-bold text-brown-text mb-3">
+                  ابدأ البحث عن عطرك المفضل
+                </h3>
+                <p className="text-lg text-brown-text/70 mb-8 max-w-md mx-auto">
+                  اكتب اسم العطر أو الماركة مثل: Dior، Chanel، Oud، Jasmine
+                </p>
+              </div>
+            )}
+
+            {/* Selected Perfumes (Full Cards with Images) */}
+            {selectedPerfumesList.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-brown-text mb-4">العطور المختارة</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {selectedPerfumesList.map((perfume) => (
+                    <PerfumeCard
+                      key={perfume.id}
+                      variant={perfume.variant}
+                      title={perfume.name}
+                      brand={perfume.brand}
+                      matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
+                      imageUrl={perfume.image}
+                      description={perfume.description}
+                      isSafe={perfume.isSafe}
+                      isSelected={true}
+                      onSelect={() => togglePerfume(perfume.id)}
+                      selectionType="liked"
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </>
