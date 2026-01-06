@@ -1,3 +1,12 @@
+/**
+ * ⚠️ مرجع قديم: هذا الملف مرجع قديم وقد لا يطابق الكود الحالي.
+ * تم تحديثه آخر مرة في 2026-01-04.
+ * يرجى الرجوع إلى الكود الفعلي في `src/components/ui/CTAButton.tsx` للاطلاع على التطبيق الحالي.
+ * 
+ * ⚠️ Deprecated:
+ * - variant "skip" تم استبداله بـ "tertiary" في الكود الحالي
+ */
+
 import React, { useState } from 'react';
 
 const CTAButton = () => {

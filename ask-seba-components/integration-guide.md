@@ -1,4 +1,7 @@
 # Ask Seba - Integration Guide
+
+> **⚠️ مرجع قديم:** هذا الملف مرجع قديم وقد لا يطابق الكود الحالي. تم تحديثه آخر مرة في 2026-01-04. يرجى الرجوع إلى الكود الفعلي في `src/components/` للاطلاع على التطبيق الحالي.
+
 **Version:** 2.0  
 **Date:** 2026-01-04  
 
@@ -648,3 +651,26 @@ For issues or questions:
 ---
 
 **End of Integration Guide**
+
+---
+
+## ⚠️ Deprecated / تغييرات في الكود الحالي
+
+هذا القسم يوثق الاختلافات بين هذا المرجع والكود الحالي في المشروع:
+
+### 1. CTAButton Variants
+- ❌ **`skip` variant:** تم حذفه واستبداله بـ `tertiary` variant في الكود الحالي
+- ✅ **الكود الحالي:** `src/components/ui/CTAButton.tsx` يستخدم `tertiary` بدلاً من `skip`
+
+### 2. PerfumeCard Variants
+- ❌ **`bestseller` variant:** تم حذفه من الكود الحالي
+- ✅ **الكود الحالي:** `src/components/ui/PerfumeCard.tsx` يدعم فقط `on-sale` و `just-arrived`
+
+### 3. Cart Functionality
+- ❌ **`onAddToCart` / Cart features:** غير مستخدمة في الكود الحالي
+- ✅ **السبب:** التطبيق الحالي هو تطبيق تحليلي (analytical) وليس متجر (e-commerce)
+- ✅ **الكود الحالي:** لا توجد وظائف سلة تسوق في التطبيق
+
+### 4. Component Locations
+- جميع المكونات الفعلية موجودة في `src/components/ui/` وليس في `ask-seba-components/`
+- هذا المجلد (`ask-seba-components/`) هو مرجع قديم فقط للتوثيق

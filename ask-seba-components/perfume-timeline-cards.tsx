@@ -1,3 +1,9 @@
+/**
+ * ⚠️ مرجع قديم: هذا الملف مرجع قديم وقد لا يطابق الكود الحالي.
+ * تم تحديثه آخر مرة في 2026-01-04.
+ * يرجى الرجوع إلى الكود الفعلي في `src/components/ui/PerfumeTimeline.tsx` للاطلاع على التطبيق الحالي.
+ */
+
 import React, { useState } from 'react';
 
 interface TimelineStageProps {

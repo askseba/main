@@ -1,3 +1,13 @@
+/**
+ * ⚠️ مرجع قديم: هذا الملف مرجع قديم وقد لا يطابق الكود الحالي.
+ * تم تحديثه آخر مرة في 2026-01-04.
+ * يرجى الرجوع إلى الكود الفعلي في `src/components/ui/PerfumeCard.tsx` للاطلاع على التطبيق الحالي.
+ * 
+ * ⚠️ Deprecated:
+ * - variant "bestseller" تم حذفه من الكود الحالي
+ * - cart functionality (onAddToCart) غير مستخدم في التطبيق الحالي (تطبيق تحليلي وليس متجر)
+ */
+
 import React, { useState } from 'react';
 
 interface PerfumeCardProps {

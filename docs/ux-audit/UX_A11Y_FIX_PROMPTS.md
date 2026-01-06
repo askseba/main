@@ -1,5 +1,7 @@
 # 🚀 برومبتات Cursor AI - إصلاح جميع الأخطاء (12 مشكلة)
 
+> **ملاحظة:** تم تحديث هذا الملف ليتوافق مع الكود الحالي بتاريخ 2026-01-06
+
 ## تعليمات الاستخدام:
 1. افتح Cursor AI في مجلد المشروع
 2. انسخ كل برومبت بالترتيب
@@ -13,7 +15,7 @@
 ### **P0-1: إضافة معالجة أخطاء API في صفحات Quiz**
 
 ```
-In all quiz pages (`src/app/quiz/step1-favorites/page.tsx`, `step2-disliked/page.tsx`, `step3-occasions/page.tsx`), wrap ALL fetch/API calls with comprehensive error handling.
+In all quiz pages (`src/app/quiz/step1-favorites/page.tsx`, `step2-disliked/page.tsx`, `step3-allergy/page.tsx`), wrap ALL fetch/API calls with comprehensive error handling.
 
 Requirements:
 1. Wrap every `fetch()` or data loading function in `try...catch`.
@@ -144,10 +146,12 @@ Apply the same pattern to the brand name and description if they exist and could
 
 ---
 
-### **P1-5: استبدال متغير skip بـ tertiary في CTAButton**
+### **P1-5: استبدال متغير skip بـ tertiary في CTAButton** ✅ (تم التنفيذ)
 
 ```
 In `src/components/ui/CTAButton.tsx`, replace the non-compliant `skip` variant with a new design-system-compliant `tertiary` variant.
+
+**ملاحظة:** تم تنفيذ هذه المهمة. تم حذف `skip` variant واستبداله بـ `tertiary` variant في الكود الحالي.
 
 Step 1: Locate the `variant` object inside the `cva()` definition.
 
@@ -358,7 +362,7 @@ This adds a smooth 200ms transition to all properties, making hover states feel 
 - [ ] **P0-2:** اضغط Tab في Results page - يجب ظهور Focus ring على Cards
 - [ ] **P0-3:** افتح Screen Reader - يجب قراءة Card كـ "button"
 - [ ] **P1-4:** اكتب عنوان طويل (60+ حرف) - يجب الاقتصاص
-- [ ] **P1-5:** ابحث عن `variant="skip"` - يجب ألا يوجد نتائج
+- [x] **P1-5:** ابحث عن `variant="skip"` - يجب ألا يوجد نتائج ✅ (تم التحقق)
 - [ ] **P2-6:** افحص Primary Button في DevTools - يجب أن يكون bold
 - [ ] **P2-7:** قِس Touch Targets - يجب 44px minimum
 - [ ] **P2-8:** افتح Screen Reader على Search - يجب قراءة aria-label
