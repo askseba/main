@@ -27,6 +27,35 @@ export function PerfumeCard({
   onSelect,
   selectionType = 'liked'
 }: PerfumeCardProps) {
+  // Analytical badge based on matchPercentage
+  const getAnalyticalBadge = () => {
+    if (matchPercentage >= 80) {
+      return {
+        label: 'آمن',
+        emoji: '🛡',
+        color: 'text-green-600',
+        bg: 'bg-green-600/20',
+        border: 'border-green-500/30'
+      }
+    } else if (matchPercentage >= 60) {
+      return {
+        label: 'تحذير',
+        emoji: '⚠',
+        color: 'text-amber-600',
+        bg: 'bg-amber-600/20',
+        border: 'border-amber-500/30'
+      }
+    } else {
+      return {
+        label: 'غير موصى به',
+        emoji: '❌',
+        color: 'text-red-600',
+        bg: 'bg-red-600/20',
+        border: 'border-red-500/30'
+      }
+    }
+  }
+
   const getVariantConfig = () => {
     switch(variant) {
       case 'on-sale':
@@ -49,6 +78,7 @@ export function PerfumeCard({
   };
 
   const config = getVariantConfig();
+  const analyticalBadge = getAnalyticalBadge();
 
   return (
     <div 
@@ -68,14 +98,14 @@ export function PerfumeCard({
           onSelect();
         }
       } : undefined}
-      className={`w-full max-w-sm bg-[#F2F0EB] rounded-2xl shadow-[0_0_20px_rgba(236,156,19,0.15)] overflow-hidden border transition-all duration-300 hover:shadow-[0_0_30px_rgba(236,156,19,0.25)] hover:scale-[1.01] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+      className={`w-full max-w-sm bg-cream-bg rounded-2xl shadow-[0_0_20px_rgba(236,156,19,0.15)] overflow-hidden border transition-all duration-300 hover:shadow-[0_0_30px_rgba(236,156,19,0.25)] hover:scale-[1.01] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
         onSelect ? 'cursor-pointer' : ''
       } ${
         isSelected 
           ? selectionType === 'liked'
             ? 'border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.4)] ring-2 ring-green-500/20'
             : 'border-4 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)] ring-2 ring-red-500/20'
-          : 'border border-[#5B4233]/5'
+          : 'border border-brown-text/5'
       }`}
     >
 
@@ -92,8 +122,8 @@ export function PerfumeCard({
 
       {/* Match Badge */}
       <div className="absolute top-4 left-4 z-20 flex flex-col items-center gap-1">
-        <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-[#5B4233] border-2 border-[#c0841a]/30 shadow-lg">
-          <svg className="absolute inset-0 w-full h-full -rotate-90 text-[#c0841a]" viewBox="0 0 36 36">
+        <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-brown-text border-2 border-primary/30 shadow-lg">
+          <svg className="absolute inset-0 w-full h-full -rotate-90 text-primary" viewBox="0 0 36 36">
             <path 
               className="text-white/10" 
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" 
@@ -113,12 +143,12 @@ export function PerfumeCard({
           </svg>
           <span className="text-sm font-bold text-white leading-none">{matchPercentage}%</span>
         </div>
-        <span className="text-[10px] font-bold text-[#5B4233]/70 uppercase tracking-wider">تطابق</span>
+        <span className="text-[10px] font-bold text-brown-text/70 uppercase tracking-wider">تطابق</span>
       </div>
 
       {/* Image */}
       <div className="relative w-full aspect-[4/5] flex items-center justify-center p-8 mt-2">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#c0841a]/20 blur-[60px] rounded-full pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/20 blur-[60px] rounded-full pointer-events-none"></div>
         <div 
           className="relative z-10 w-full h-full rounded-xl overflow-hidden shadow-2xl transition-transform duration-500 group-hover:scale-105"
           style={{
@@ -132,18 +162,14 @@ export function PerfumeCard({
 
       {/* Content */}
       <div className="relative px-6 pb-6 pt-2 flex flex-col gap-4 bg-transparent">
-        {/* Safety Badge */}
+        {/* Analytical Badge (based on matchPercentage) */}
         <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${
-            isSafe 
-              ? 'bg-[#483a23]/90 border border-[#c0841a]/20' 
-              : 'bg-red-900/20 border border-red-500/20'
-          } backdrop-blur-sm`}>
-            <span className={`text-[16px] ${isSafe ? 'text-[#c0841a]' : 'text-red-500'}`}>
-              {isSafe ? '🛡' : '⚠'}
+          <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${analyticalBadge.bg} ${analyticalBadge.border} backdrop-blur-sm`}>
+            <span className={`text-[16px] ${analyticalBadge.color}`}>
+              {analyticalBadge.emoji}
             </span>
-            <span className="text-white text-xs font-medium">
-              {isSafe ? 'خيار آمن' : 'تحذير'}
+            <span className={`text-xs font-medium ${analyticalBadge.color}`}>
+              {analyticalBadge.label}
             </span>
           </div>
           <span className="text-[#b0720a] text-sm font-bold tracking-wide">{brand}</span>
@@ -151,15 +177,15 @@ export function PerfumeCard({
 
         {/* Title */}
         <div className="flex flex-col gap-1">
-          <h3 className="text-2xl font-bold text-[#5B4233] leading-tight line-clamp-2 overflow-hidden">{title}</h3>
-          <p className="text-[#5B4233]/70 text-sm line-clamp-2 leading-relaxed">{description}</p>
+          <h3 className="text-2xl font-bold text-brown-text leading-tight line-clamp-2 overflow-hidden">{title}</h3>
+          <p className="text-brown-text/70 text-sm line-clamp-2 leading-relaxed">{description}</p>
         </div>
 
-        <div className="h-px w-full bg-[#5B4233]/10 my-1"></div>
+        <div className="h-px w-full bg-brown-text/10 my-1"></div>
 
         {/* Action Button */}
         <div className="flex items-center justify-center mt-1">
-          <button className="flex-1 h-12 bg-[#c0841a] hover:bg-[#c0841a]/90 text-[#291d12] rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_4px_12px_rgba(236,156,19,0.3)]">
+          <button className="flex-1 h-12 bg-primary hover:bg-primary/90 text-[#291d12] rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_4px_12px_rgba(236,156,19,0.3)]">
             <BarChart3 className="w-5 h-5" />
             <span>أضف للتحليل</span>
           </button>

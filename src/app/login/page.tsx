@@ -60,13 +60,13 @@ function LoginContent() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-[#F2F0EB] via-[#F2F0EB] to-[#c0841a]/20 flex items-center justify-center p-4">
-      <div className="bg-white/95 backdrop-blur-xl p-12 rounded-3xl shadow-2xl max-w-md w-full mx-4 border border-[#c0841a]/10">
+    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-cream-bg via-cream-bg to-primary/20 flex items-center justify-center p-4">
+      <div className="bg-white/95 backdrop-blur-xl p-12 rounded-3xl shadow-2xl max-w-md w-full mx-4 border border-primary/10">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-[#c0841a] to-[#a07215] bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-4">
             Ask Seba
           </h1>
-          <p className="text-xl text-[#5B4233]/70">تسجيل الدخول للبدء في التوصيات</p>
+          <p className="text-xl text-brown-text/70">تسجيل الدخول للبدء في التوصيات</p>
         </div>
 
         {error && (
@@ -92,24 +92,24 @@ function LoginContent() {
           
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#5B4233]/20" />
+              <div className="w-full border-t border-brown-text/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-[#5B4233]/60">أو</span>
+              <span className="px-2 bg-white text-brown-text/60">أو</span>
             </div>
           </div>
           
           <button
             onClick={handleDemoSignIn}
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-[#c0841a] to-[#a07215] hover:from-[#a07215] hover:to-[#8b6412] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1"
+            className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/80 hover:to-primary/70 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1"
           >
             {isLoading ? 'جاري التحميل...' : '🚀 دخول تجريبي سريع'}
           </button>
         </div>
         
-        <p className="text-center mt-8 text-sm text-[#5B4233]/70">
-          لا حساب؟ <Link href="/register" className="font-bold text-[#c0841a] hover:text-[#a07215] transition-colors">إنشاء حساب</Link>
+        <p className="text-center mt-8 text-sm text-brown-text/70">
+          لا حساب؟ <Link href="/register" className="font-bold text-primary hover:text-primary/80 transition-colors">إنشاء حساب</Link>
         </p>
       </div>
     </div>
@@ -119,7 +119,7 @@ function LoginContent() {
 export default function Login() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F2F0EB]/50 flex items-center justify-center">
+      <div className="min-h-screen bg-cream-bg/50 flex items-center justify-center">
         <LoadingSpinner message="جاري التحميل..." />
       </div>
     }>

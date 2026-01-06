@@ -31,7 +31,7 @@ export default function Dashboard() {
   if (status === 'unauthenticated') {
     router.push('/login?callbackUrl=/dashboard')
     return (
-      <div className="min-h-screen bg-[#F2F0EB]/50 flex items-center justify-center">
+      <div className="min-h-screen bg-cream-bg/50 flex items-center justify-center">
         <LoadingSpinner message="جاري التحويل..." />
       </div>
     )
@@ -40,7 +40,7 @@ export default function Dashboard() {
   // Show loading while checking session
   if (status === 'loading' || !session) {
     return (
-      <div className="min-h-screen bg-[#F2F0EB]/50 flex items-center justify-center">
+      <div className="min-h-screen bg-cream-bg/50 flex items-center justify-center">
         <LoadingSpinner message="جاري التحميل..." />
       </div>
     )
@@ -70,15 +70,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F0EB]/50" dir="rtl">
+    <div className="min-h-screen bg-cream-bg/50" dir="rtl">
       {/* Hero Header with User Info */}
-      <header className="bg-gradient-to-r from-[#c0841a] to-[#a07215] text-white p-8 rounded-b-3xl shadow-2xl mb-8">
+      <header className="bg-gradient-to-r from-primary to-primary/80 text-white p-8 rounded-b-3xl shadow-2xl mb-8">
         <div className="max-w-6xl mx-auto flex items-center gap-6 flex-wrap">
           {session.user?.image ? (
             <div className="relative w-20 h-20 rounded-full ring-4 ring-white/50 shadow-lg overflow-hidden">
               <Image 
                 src={session.user.image} 
-                alt={session.user.name || 'Profile'}
+                alt={`صورة الملف الشخصي لـ ${session.user.name || 'المستخدم'}`}
                 fill
                 className="object-cover"
               />
@@ -97,20 +97,20 @@ export default function Dashboard() {
 
       <div className="max-w-6xl mx-auto space-y-8 px-6 pb-12">
         {/* Header Card */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-[#F2F0EB]/50">
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-cream-bg/50">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#10B981] to-emerald-500 rounded-2xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-r from-safe-green to-emerald-500 rounded-2xl flex items-center justify-center">
                 <span className="text-2xl">👋</span>
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-[#5B4233] leading-tight">لوحة التحكم</h1>
-                <p className="text-[#5B4233]/70">بصمتك العطرية مكتملة ✅</p>
+                <h1 className="text-3xl font-bold text-brown-text leading-tight">لوحة التحكم</h1>
+                <p className="text-brown-text/70">بصمتك العطرية مكتملة ✅</p>
               </div>
             </div>
-            <div className="text-left">
-              <div className="text-2xl font-bold text-[#10B981] mb-1">{defaultUserStats.totalMatches} تطابق</div>
-              <div className="text-sm text-[#5B4233]/60">عطور محفوظة</div>
+            <div className="text-start">
+              <div className="text-2xl font-bold text-safe-green mb-1">{defaultUserStats.totalMatches} تطابق</div>
+              <div className="text-sm text-brown-text/60">عطور محفوظة</div>
             </div>
           </div>
           <StatsGrid stats={[
@@ -122,7 +122,7 @@ export default function Dashboard() {
         </div>
 
         {/* Dashboard Tabs */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-[#F2F0EB]/50">
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-cream-bg/50">
           <FilterTabs 
             tabs={tabs}
             activeTab={activeTab}
@@ -132,7 +132,7 @@ export default function Dashboard() {
 
           {/* Tab Content */}
           <div className="mt-6">
-            <h2 className="text-xl font-bold text-[#5B4233] mb-6">
+            <h2 className="text-xl font-bold text-brown-text mb-6">
               {activeTab === 'favorites' && '💜 عطورك المفضلة'}
               {activeTab === 'disliked' && '❌ العطور المكروهة'}
               {activeTab === 'wishlist' && '💾 قائمة الرغبات'}
@@ -148,8 +148,8 @@ export default function Dashboard() {
         </div>
 
         {/* Radar Chart */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-[#F2F0EB]/50">
-          <h2 className="text-2xl font-bold text-[#5B4233] mb-8 text-center">بصمتك العطرية</h2>
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-cream-bg/50">
+          <h2 className="text-2xl font-bold text-brown-text mb-8 text-center">بصمتك العطرية</h2>
           <div className="flex justify-center">
             <Suspense fallback={<div className="w-[400px] h-[400px] flex items-center justify-center"><LoadingSpinner size="md" /></div>}>
               <RadarChart data={defaultRadarData} size={400} />

@@ -66,7 +66,7 @@ export function ShareButton({
   }
 
   const buttonClasses = {
-    primary: 'px-6 py-3 bg-gradient-to-r from-[#2f6f73] to-[#c0841a] text-white rounded-full font-bold shadow-button hover:shadow-lg transition-all flex items-center gap-2',
+    primary: 'px-6 py-3 bg-gradient-to-r from-gradient-start to-primary text-white rounded-full font-bold shadow-button hover:shadow-lg transition-all flex items-center gap-2',
     secondary: 'px-6 py-3 bg-white border-2 border-primary text-primary rounded-full font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2',
     icon: 'w-12 h-12 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center'
   }

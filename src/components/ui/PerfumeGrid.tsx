@@ -36,7 +36,16 @@ export function PerfumeGrid({
         <div
           key={perfume.id}
           onClick={() => onPerfumeClick?.(perfume)}
-          className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer group"
+          className="bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          tabIndex={onPerfumeClick ? 0 : undefined}
+          role={onPerfumeClick ? "button" : undefined}
+          aria-label={`عرض تفاصيل ${perfume.name} من ${perfume.brand}`}
+          onKeyDown={onPerfumeClick ? (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onPerfumeClick(perfume)
+            }
+          } : undefined}
         >
           {/* Image */}
           <div className="aspect-[3/4] relative overflow-hidden bg-gradient-to-b from-gray-100 to-gray-200">
@@ -68,8 +77,11 @@ export function PerfumeGrid({
                 </h3>
                 <p className="text-neutral-500 text-sm mt-1">{perfume.brand}</p>
               </div>
-              <button className="text-neutral-400 hover:text-red-500 transition-colors ml-2">
-                <span className="material-symbols-outlined text-xl">favorite_border</span>
+              <button 
+                className="text-neutral-400 hover:text-red-500 transition-colors ms-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full p-1"
+                aria-label={`إضافة ${perfume.name} إلى المفضلة`}
+              >
+                <span className="material-symbols-outlined text-xl" aria-hidden="true">favorite_border</span>
               </button>
             </div>
 

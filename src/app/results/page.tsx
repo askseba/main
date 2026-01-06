@@ -7,6 +7,7 @@ import { MobileFilterModal } from '@/components/ui/MobileFilterModal'
 import { CTAButton } from '@/components/ui/CTAButton'
 import { perfumes } from '@/lib/data/perfumes'
 import { useQuiz } from '@/contexts/QuizContext'
+import { formatPerfumeResultsTitle } from '@/lib/utils/arabicPlural'
 
 interface FilterState {
   minMatch: number
@@ -162,11 +163,7 @@ export default function ResultsPage() {
           <p className="text-xl text-brown-text/70 mb-2">
             {filteredPerfumes.length === 0 
               ? "لا توجد نتائج مطابقة" 
-              : filteredPerfumes.length === 1
-              ? "تم العثور على عطر مثالي لك"
-              : filteredPerfumes.length === 2
-              ? "تم العثور على عطرين مثاليين لك"
-              : `تم العثور على ${filteredPerfumes.length} عطور مثالية لك`
+              : `تم العثور على ${formatPerfumeResultsTitle(filteredPerfumes.length)}`
             }
           </p>
           {(quizData.step1_liked.length > 0 || quizData.step2_disliked.length > 0 || quizData.step3_allergy.ingredients.length > 0) && (
@@ -191,7 +188,7 @@ export default function ResultsPage() {
                   setSearchQuery(e.target.value)
                   setCurrentPage(1)
                 }}
-                className="w-full pr-12 pl-4 py-4 rounded-2xl border-2 border-brown-text/20 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+                className="w-full pe-12 ps-4 py-4 rounded-2xl border-2 border-brown-text/20 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
               />
             </div>
             <select
@@ -364,7 +361,7 @@ export default function ResultsPage() {
                       disabled={currentPage === 1}
                       className="p-3 rounded-xl bg-white border border-brown-text/20 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-5 h-5 rtl:rotate-180" />
                       السابق
                     </button>
 
@@ -388,7 +385,7 @@ export default function ResultsPage() {
                       className="p-3 rounded-xl bg-white border border-brown-text/20 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                     >
                       التالي
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-5 h-5 rtl:rotate-180" />
                     </button>
                   </div>
                 )}

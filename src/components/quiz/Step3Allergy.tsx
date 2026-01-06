@@ -236,7 +236,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
           aria-label="العودة للخطوة السابقة"
           className="px-8 py-3 text-text-dark border-2 border-text-dark rounded-2xl font-bold hover:bg-text-dark hover:text-white transition-all flex-1 md:flex-none flex items-center justify-center"
         >
-          <ChevronRight className="w-5 h-5 inline ml-2" aria-hidden="true" />
+          <ChevronRight className="w-5 h-5 inline ms-2 rtl:rotate-180" aria-hidden="true" />
           رجوع
         </button>
         <button
@@ -255,7 +255,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
           className="px-8 py-3 bg-gradient-to-l from-gauge-safe to-emerald-600 text-white rounded-2xl font-bold shadow-xl hover:shadow-2xl hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-1 md:flex-none flex items-center justify-center"
         >
           {currentLevel === 3 ? 'حفظ بصمتي' : 'التالي'}
-          {currentLevel < 3 && <ChevronLeft className="w-5 h-5 inline mr-2" aria-hidden="true" />}
+          {currentLevel < 3 && <ChevronLeft className="w-5 h-5 inline me-2 rtl:rotate-180" aria-hidden="true" />}
         </button>
       </div>
 

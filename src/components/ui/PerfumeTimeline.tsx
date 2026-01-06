@@ -199,7 +199,7 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute right-full mr-4 bg-brown-text text-white px-4 py-2 rounded-lg shadow-lg z-20 max-w-xs"
+                className="absolute right-full me-4 bg-brown-text text-white px-4 py-2 rounded-lg shadow-lg z-20 max-w-xs"
                 role="tooltip"
                 aria-live="polite"
               >

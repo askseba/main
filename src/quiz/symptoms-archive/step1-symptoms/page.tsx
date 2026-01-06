@@ -99,7 +99,7 @@ export default function Step1SymptomsPage() {
             aria-label="العودة للصفحة الرئيسية"
             className="px-8 py-3 text-brown-text border-2 border-brown-text/30 rounded-2xl font-tajawal-bold hover:bg-brown-text hover:text-white transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
           >
-            <ChevronRight className="w-5 h-5" aria-hidden="true" />
+            <ChevronRight className="w-5 h-5 rtl:rotate-180" aria-hidden="true" />
             رجوع
           </button>
 
@@ -113,7 +113,7 @@ export default function Step1SymptomsPage() {
             {canProceed ? (
               <>
                 التالي
-                <ChevronLeft className="w-5 h-5 inline mr-2" aria-hidden="true" />
+                <ChevronLeft className="w-5 h-5 inline me-2 rtl:rotate-180" aria-hidden="true" />
               </>
             ) : (
               'اختر حالة واحدة على الأقل'

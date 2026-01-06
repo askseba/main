@@ -131,7 +131,7 @@ export function FilterSidebar({
           {/* Perfume Families */}
           <div>
             <h3 className="font-bold text-primary mb-3">العائلة العطرية</h3>
-            <div className="space-y-2 pr-2 border-r-2 border-primary/10">
+            <div className="space-y-2 pe-2 border-e-2 border-primary/10">
               {families.map((family, idx) => (
                 <div key={idx}>
                   <label 
@@ -147,7 +147,7 @@ export function FilterSidebar({
                     </span>
                   </label>
                   {family.children && (
-                    <div className="pr-6 space-y-2 mt-2">
+                    <div className="pe-6 space-y-2 mt-2">
                       {family.children.map((child, childIdx) => {
                         const key = `${family.name}-${child.name}`
                         const isChecked = selectedFamilies.includes(key)

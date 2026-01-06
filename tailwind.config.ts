@@ -25,7 +25,8 @@ const config: Config = {
         'beige-light': '#EBE1DD',
       },
       fontFamily: {
-        sans: ['Noto Sans Arabic', 'sans-serif'], // Exception documented in DESIGN_EXCEPTIONS.md
+        arabic: ['var(--font-arabic)', 'sans-serif'],
+        sans: ['var(--font-arabic)', 'sans-serif'], // Default to Arabic font
         serif: ['Playfair Display', 'serif'], // Logo
         tajawal: ['Tajawal', 'sans-serif'], // Fallback if needed
       },

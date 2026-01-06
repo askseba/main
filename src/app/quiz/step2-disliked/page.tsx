@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { perfumes } from '@/lib/data/perfumes'
 import { PerfumeCard } from '@/components/ui/PerfumeCard'
-import { PerfumeSearchResult } from '@/components/ui/PerfumeSearchResult'
+import { CompactPerfumeCard } from '@/components/ui/CompactPerfumeCard'
 import { CTAButton } from '@/components/ui/CTAButton'
 
 const MIN_SELECTIONS = 3
@@ -75,20 +75,23 @@ export default function Step2DislikedPage() {
     loadPerfumes()
   }, [loadPerfumes, debouncedSearchTerm])
 
-  // Search functionality - useMemo
+  // Search functionality - useMemo (exclude already selected perfumes)
   const searchResults = useMemo(() => {
     if (!debouncedSearchTerm.trim()) return []
     try {
       if (!perfumes || !Array.isArray(perfumes)) return []
       return perfumes.filter(p =>
-        p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        p.brand.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+        // Filter by search term
+        (p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+         p.brand.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
+        // Exclude already selected perfumes
+        !selectedPerfumes.includes(p.id)
       )
     } catch (err) {
       console.error('Error filtering perfumes:', err)
       return []
     }
-  }, [debouncedSearchTerm])
+  }, [debouncedSearchTerm, selectedPerfumes])
 
   const togglePerfume = useCallback((id: string) => {
     setSelectedPerfumes(prev => {
@@ -101,11 +104,24 @@ export default function Step2DislikedPage() {
     })
   }, [])
 
-  const handleNext = () => {
-    if (selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS) {
-      sessionStorage.setItem('quiz_step2', JSON.stringify(selectedPerfumes))
+  // Add perfume from search results to selected list
+  const handleAddPerfume = useCallback((id: string) => {
+    if (selectedPerfumes.length < MAX_SELECTIONS && !selectedPerfumes.includes(id)) {
+      setSelectedPerfumes(prev => [...prev, id])
+    }
+  }, [selectedPerfumes])
+
+  const handleNext = (perfumesToSave?: string[]) => {
+    const perfumes = perfumesToSave ?? selectedPerfumes
+    // Allow skipping (empty array) or proceed with valid selection
+    if (perfumes.length === 0 || (perfumes.length >= MIN_SELECTIONS && perfumes.length <= MAX_SELECTIONS)) {
+      sessionStorage.setItem('quiz_step2', JSON.stringify(perfumes))
       router.push('/quiz/step3-allergy')
     }
+  }
+
+  const handleSkip = () => {
+    handleNext([])
   }
 
   const canProceed = selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS
@@ -144,25 +160,30 @@ export default function Step2DislikedPage() {
           </p>
         </div>
 
-        {/* Selection Counter Badge */}
-        {selectedPerfumes.length > 0 && (
-          <div className="text-center mb-8">
-            <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-full transition-all ${
-              canProceed 
-                ? 'bg-red-600/10 border-2 border-red-600' 
-                : 'bg-primary/10 border-2 border-primary'
+        {/* Selection Counter Badge - Always Visible */}
+        <div className="text-center mb-8">
+          <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-full transition-all ${
+            canProceed 
+              ? 'bg-green-600/10 border-2 border-green-600' 
+              : selectedPerfumes.length > 0
+              ? 'bg-primary/10 border-2 border-primary'
+              : 'bg-gray-100 border-2 border-gray-300'
+          }`}>
+            <span className={`font-tajawal-bold text-lg ${
+              canProceed ? 'text-green-700' : selectedPerfumes.length > 0 ? 'text-brown-text' : 'text-gray-500'
             }`}>
-              <span className={`font-tajawal-bold text-lg ${
-                canProceed ? 'text-red-700' : 'text-brown-text'
-              }`}>
-                اخترت {selectedPerfumes.length}/{MAX_SELECTIONS}
+              غير المفضلة: {selectedPerfumes.length} / {MAX_SELECTIONS}
+            </span>
+            {canProceed && (
+              <span className="text-green-600 text-xl">✓</span>
+            )}
+            {!canProceed && selectedPerfumes.length > 0 && selectedPerfumes.length < MIN_SELECTIONS && (
+              <span className="text-sm text-amber-600 font-medium">
+                (اختر {MIN_SELECTIONS - selectedPerfumes.length} عطراً إضافياً على الأقل)
               </span>
-              {canProceed && (
-                <span className="text-red-600 text-xl">✓</span>
-              )}
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Search Bar */}
         <div className="mb-8">
@@ -191,42 +212,40 @@ export default function Step2DislikedPage() {
               إعادة المحاولة
             </CTAButton>
           </div>
-        ) : displayedPerfumes.length === 0 && !searchTerm ? (
-          <div className="text-center py-20 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl p-12">
-            <Search className="w-20 h-20 mx-auto mb-6 text-primary/50" />
-            <h3 className="text-2xl font-bold text-brown-text mb-3">
-              ابدأ البحث عن عطرك المفضل
-            </h3>
-            <p className="text-lg text-brown-text/70 mb-8 max-w-md mx-auto">
-              اكتب اسم العطر أو الماركة مثل: Dior، Chanel، Oud، Jasmine
-            </p>
-          </div>
         ) : (
           <>
-            {/* Search Results - جميع المطابقات */}
-            {searchResults.length > 0 ? (
-              <div className="space-y-2 mb-8 max-h-96 overflow-y-auto">
-                {searchResults.map((perfume) => (
-                  <PerfumeSearchResult
-                    key={perfume.id}
-                    perfume={{
-                      id: perfume.id,
-                      name: perfume.name,
-                      brand: perfume.brand,
-                      matchPercentage: perfume.matchPercentage ?? perfume.score,
-                      isSafe: perfume.isSafe
-                    }}
-                    isSelected={selectedPerfumes.includes(perfume.id)}
-                    onSelect={() => togglePerfume(perfume.id)}
-                    disabled={selectedPerfumes.length >= MAX_SELECTIONS}
-                  />
-                ))}
+            {/* Search Results - Compact Cards */}
+            {debouncedSearchTerm.trim() && searchResults.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-brown-text mb-4">نتائج البحث</h2>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {searchResults.map((perfume) => (
+                    <CompactPerfumeCard
+                      key={perfume.id}
+                      perfume={{
+                        id: perfume.id,
+                        name: perfume.name,
+                        brand: perfume.brand,
+                        matchPercentage: perfume.matchPercentage ?? perfume.score,
+                        isSafe: perfume.isSafe
+                      }}
+                      onAdd={() => handleAddPerfume(perfume.id)}
+                      disabled={selectedPerfumes.length >= MAX_SELECTIONS}
+                    />
+                  ))}
+                </div>
               </div>
-            ) : searchTerm ? (
+            )}
+
+            {/* رسالة عدم وجود نتائج */}
+            {debouncedSearchTerm.trim() && searchResults.length === 0 && (
               <div className="text-center py-12 text-gray-500">
-                لا توجد عطور مطابقة لـ &quot;{searchTerm}&quot;
+                لا توجد نتائج مطابقة لبحثك
               </div>
-            ) : (
+            )}
+
+            {/* Empty State - فقط عند عدم وجود بحث */}
+            {!debouncedSearchTerm.trim() && (
               <div className="text-center py-20 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl p-12">
                 <Search className="w-20 h-20 mx-auto mb-6 text-primary/50" />
                 <h3 className="text-2xl font-bold text-brown-text mb-3">
@@ -241,7 +260,9 @@ export default function Step2DislikedPage() {
             {/* Selected Perfumes (Full Cards with Images) */}
             {selectedPerfumesList.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-brown-text mb-4">العطور المختارة</h2>
+                <h2 className="text-2xl font-bold text-brown-text mb-4">
+                  العطور المختارة ({selectedPerfumesList.length}/{MAX_SELECTIONS})
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {selectedPerfumesList.map((perfume) => (
                     <PerfumeCard
@@ -271,7 +292,7 @@ export default function Step2DislikedPage() {
             aria-label="العودة للخطوة السابقة"
             className="px-8 py-3 text-brown-text border-2 border-brown-text/30 rounded-2xl font-tajawal-bold hover:bg-brown-text hover:text-white transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
           >
-            <ChevronRight className="w-5 h-5" aria-hidden="true" />
+            <ChevronRight className="w-5 h-5 rtl:rotate-180" aria-hidden="true" />
             رجوع
           </button>
 
@@ -285,7 +306,7 @@ export default function Step2DislikedPage() {
             {canProceed ? (
               <>
                 التالي
-                <ChevronLeft className="w-5 h-5 inline mr-2" aria-hidden="true" />
+                <ChevronLeft className="w-5 h-5 inline me-2 rtl:rotate-180" aria-hidden="true" />
               </>
             ) : selectedPerfumes.length < MIN_SELECTIONS ? (
               `اختر ${MIN_SELECTIONS} عطور على الأقل`
@@ -295,10 +316,18 @@ export default function Step2DislikedPage() {
           </CTAButton>
         </div>
 
-        {/* Help Text */}
+        {/* Skip Button */}
         <div className="text-center mt-8">
-          <p className="text-sm text-brown-text/60">
-            💡 يمكنك تخطي هذه الخطوة إذا لم تكن هناك عطور تكرهها
+          <CTAButton
+            variant="tertiary"
+            size="default"
+            onClick={handleSkip}
+            className="text-brown-text/70 hover:text-brown-text"
+          >
+            💡 تخطي هذه الخطوة
+          </CTAButton>
+          <p className="text-xs text-brown-text/50 mt-2">
+            يمكنك تخطي هذه الخطوة إذا لم تكن هناك عطور تكرهها
           </p>
         </div>
       </div>

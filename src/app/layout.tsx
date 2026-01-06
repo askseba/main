@@ -8,7 +8,7 @@ import { QuizProvider } from "@/contexts/QuizContext";
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-noto-sans-arabic",
+  variable: "--font-arabic",
 });
 
 const manrope = Manrope({
