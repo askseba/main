@@ -1,10 +1,9 @@
 "use client"
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, Plus, X, AlertTriangle } from 'lucide-react'
 import { perfumes } from '@/lib/data/perfumes'
 import { PerfumeCard } from '@/components/ui/PerfumeCard'
-import { CompactPerfumeCard } from '@/components/ui/CompactPerfumeCard'
 import { CTAButton } from '@/components/ui/CTAButton'
 
 const MIN_SELECTIONS = 3
@@ -12,27 +11,39 @@ const MAX_SELECTIONS = 12
 
 export default function Step1FavoritesPage() {
   const router = useRouter()
-  const [selectedPerfumes, setSelectedPerfumes] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
+  const isInitialized = useRef(false)
+  const [selectedPerfumes, setSelectedPerfumes] = useState<string[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  const [showMaxWarning, setShowMaxWarning] = useState(false)
+
+  // Validate perfumes data synchronously (no effect needed)
+  const error = (!perfumes || !Array.isArray(perfumes) || perfumes.length === 0) 
+    ? 'بيانات العطور غير متاحة' 
+    : null
+
+  // Load from sessionStorage on mount (client-side only)
+  // This is a valid use case - reading from storage on mount
+  useEffect(() => {
+    if (!isInitialized.current) {
+      isInitialized.current = true
       const saved = sessionStorage.getItem('step1_favorites')
       if (saved) {
         try {
-          return JSON.parse(saved)
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSelectedPerfumes(JSON.parse(saved))
         } catch (e) {
           console.error('Failed to load step1 favorites:', e)
         }
       }
     }
-    return []
-  })
-  const [searchTerm, setSearchTerm] = useState('')
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  }, [])
 
   // Save to sessionStorage whenever selectedPerfumes changes
   useEffect(() => {
-    sessionStorage.setItem('step1_favorites', JSON.stringify(selectedPerfumes))
+    if (isInitialized.current) {
+      sessionStorage.setItem('step1_favorites', JSON.stringify(selectedPerfumes))
+    }
   }, [selectedPerfumes])
 
   // Debounce search term (300ms)
@@ -49,42 +60,25 @@ export default function Step1FavoritesPage() {
   // Calculate loading state based on search term vs debounced term
   const isSearchLoading = searchTerm !== debouncedSearchTerm
 
-  // Load perfumes with error handling
-  const loadPerfumes = useCallback(() => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // Validate perfumes array
-      if (!perfumes || !Array.isArray(perfumes)) {
-        throw new Error('بيانات العطور غير متاحة')
-      }
-      if (perfumes.length === 0) {
-        throw new Error('لا توجد عطور متاحة')
-      }
-      setIsLoading(false)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'حدث خطأ أثناء تحميل العطور. يرجى المحاولة مرة أخرى.'
-      setError(errorMessage)
-      setIsLoading(false)
-      console.error('Error loading perfumes:', err)
+  // Check if max reached
+  const isMaxReached = selectedPerfumes.length >= MAX_SELECTIONS
+
+  // Timer ref for max warning
+  const maxWarningTimerRef = useCallback((id: string) => {
+    if (selectedPerfumes.length >= MAX_SELECTIONS && !selectedPerfumes.includes(id)) {
+      setShowMaxWarning(true)
+      setTimeout(() => setShowMaxWarning(false), 3000)
     }
-  }, [])
+  }, [selectedPerfumes])
 
-  // Load perfumes on mount and when debouncedSearchTerm changes
-  useEffect(() => {
-    loadPerfumes()
-  }, [loadPerfumes, debouncedSearchTerm])
-
-  // Search functionality - useMemo (exclude already selected perfumes)
+  // Search functionality - exclude already selected perfumes
   const searchResults = useMemo(() => {
     if (!debouncedSearchTerm.trim()) return []
     try {
       if (!perfumes || !Array.isArray(perfumes)) return []
       return perfumes.filter(p =>
-        // Filter by search term
         (p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
          p.brand.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
-        // Exclude already selected perfumes
         !selectedPerfumes.includes(p.id)
       )
     } catch (err) {
@@ -93,23 +87,21 @@ export default function Step1FavoritesPage() {
     }
   }, [debouncedSearchTerm, selectedPerfumes])
 
-  const togglePerfume = useCallback((id: string) => {
-    setSelectedPerfumes(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(p => p !== id)
-      } else if (prev.length < MAX_SELECTIONS) {
-        return [...prev, id]
-      }
-      return prev
-    })
-  }, [])
-
-  // Add perfume from search results to selected list
+  // Add perfume from search results
   const handleAddPerfume = useCallback((id: string) => {
-    if (selectedPerfumes.length < MAX_SELECTIONS && !selectedPerfumes.includes(id)) {
+    if (selectedPerfumes.length >= MAX_SELECTIONS) {
+      maxWarningTimerRef(id)
+      return
+    }
+    if (!selectedPerfumes.includes(id)) {
       setSelectedPerfumes(prev => [...prev, id])
     }
-  }, [selectedPerfumes])
+  }, [selectedPerfumes, maxWarningTimerRef])
+
+  // Remove perfume from selected list
+  const handleRemovePerfume = useCallback((id: string) => {
+    setSelectedPerfumes(prev => prev.filter(p => p !== id))
+  }, [])
 
   const handleNext = () => {
     if (selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS) {
@@ -119,6 +111,8 @@ export default function Step1FavoritesPage() {
   }
 
   const canProceed = selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS
+  
+  // Get full perfume objects for selected IDs
   const selectedPerfumesList = useMemo(() => {
     try {
       if (!perfumes || !Array.isArray(perfumes)) return []
@@ -128,11 +122,6 @@ export default function Step1FavoritesPage() {
       return []
     }
   }, [selectedPerfumes])
-
-  // Fallback for hydration safety
-  const displayedPerfumes = useMemo(() => {
-    return searchTerm ? searchResults.slice(0, 3) : []
-  }, [searchTerm, searchResults])
 
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
@@ -154,7 +143,7 @@ export default function Step1FavoritesPage() {
           </p>
         </div>
 
-        {/* Selection Counter Badge - Always Visible */}
+        {/* Selection Counter Badge */}
         <div className="text-center mb-8">
           <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-full transition-all ${
             canProceed 
@@ -179,16 +168,26 @@ export default function Step1FavoritesPage() {
           </div>
         </div>
 
+        {/* Max Selection Warning */}
+        {showMaxWarning && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+            <div className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full shadow-lg">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="font-bold">الحد الأقصى 12 عطراً!</span>
+            </div>
+          </div>
+        )}
+
         {/* Search Bar */}
-        <div className="mb-8">
+        <div className="mb-8 relative">
           <div className="relative">
             <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brown-text/50 w-5 h-5" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ابحث عن عطر..."
-              className="w-full px-12 py-4 border-2 border-brown-text/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-brown-text placeholder-brown-text/50"
+              placeholder="اكتب اسم عطر للبدء..."
+              className="w-full px-12 py-4 border-2 border-brown-text/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-brown-text placeholder-brown-text/50 text-lg"
             />
             {isSearchLoading && (
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -196,82 +195,140 @@ export default function Step1FavoritesPage() {
               </div>
             )}
           </div>
+
+          {/* ========================================
+              SEARCH RESULTS - TEXT ONLY (No Images)
+              ======================================== */}
+          {debouncedSearchTerm.trim() && searchResults.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-brown-text/20 rounded-xl shadow-xl z-40 max-h-80 overflow-y-auto">
+              <div className="p-2">
+                <div className="text-xs text-brown-text/50 px-3 py-2 border-b border-brown-text/10">
+                  {searchResults.length} نتيجة
+                </div>
+                {searchResults.map((perfume) => (
+                  <div
+                    key={perfume.id}
+                    className="flex items-center justify-between p-3 hover:bg-primary/5 rounded-lg transition-colors"
+                  >
+                    {/* Text Only - Name & Brand */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-brown-text truncate">
+                        {perfume.name}
+                      </h3>
+                      <p className="text-sm text-brown-text/60 truncate">
+                        {perfume.brand}
+                      </p>
+                    </div>
+
+                    {/* Add Button */}
+                    <button
+                      onClick={() => handleAddPerfume(perfume.id)}
+                      disabled={isMaxReached}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                        isMaxReached
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
+                          : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
+                      }`}
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>إضافة</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* No Results Message */}
+          {debouncedSearchTerm.trim() && searchResults.length === 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-brown-text/20 rounded-xl shadow-xl z-40 p-6 text-center">
+              <p className="text-brown-text/60">لا توجد نتائج مطابقة لـ &ldquo;{debouncedSearchTerm}&rdquo;</p>
+            </div>
+          )}
         </div>
 
-        {/* Search-First UX */}
         {error ? (
           <div className="text-center py-8">
             <p className="text-red-500 mb-4">{error}</p>
-            <CTAButton onClick={loadPerfumes} variant="primary">
+            <CTAButton onClick={() => window.location.reload()} variant="primary">
               إعادة المحاولة
             </CTAButton>
           </div>
         ) : (
           <>
-            {/* Search Results - Compact Cards */}
-            {debouncedSearchTerm.trim() && searchResults.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-brown-text mb-4">نتائج البحث</h2>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {searchResults.map((perfume) => (
-                    <CompactPerfumeCard
-                      key={perfume.id}
-                      perfume={{
-                        id: perfume.id,
-                        name: perfume.name,
-                        brand: perfume.brand,
-                        matchPercentage: perfume.matchPercentage ?? perfume.score,
-                        isSafe: perfume.isSafe
-                      }}
-                      onAdd={() => handleAddPerfume(perfume.id)}
-                      disabled={selectedPerfumes.length >= MAX_SELECTIONS}
-                    />
+            {/* ========================================
+                EMPTY STATE - Before Search
+                ======================================== */}
+            {!debouncedSearchTerm.trim() && selectedPerfumesList.length === 0 && (
+              <div className="text-center py-20 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl">
+                <Search className="w-20 h-20 mx-auto mb-6 text-primary/40" />
+                <h3 className="text-2xl font-bold text-brown-text mb-3">
+                  اكتب اسم عطر للبدء...
+                </h3>
+                <p className="text-lg text-brown-text/60 mb-4 max-w-md mx-auto">
+                  ابحث عن عطورك المفضلة بالاسم أو الماركة
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
+                  {['Dior', 'Chanel', 'Tom Ford', 'Creed', 'Oud'].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => setSearchTerm(suggestion)}
+                      className="px-4 py-2 bg-white border border-brown-text/20 rounded-full text-sm text-brown-text/70 hover:border-primary hover:text-primary transition-colors"
+                    >
+                      {suggestion}
+                    </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* رسالة عدم وجود نتائج */}
-            {debouncedSearchTerm.trim() && searchResults.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                لا توجد نتائج مطابقة لبحثك
-              </div>
-            )}
-
-            {/* Empty State - فقط عند عدم وجود بحث */}
-            {!debouncedSearchTerm.trim() && (
-              <div className="text-center py-20 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl p-12">
-                <Search className="w-20 h-20 mx-auto mb-6 text-primary/50" />
-                <h3 className="text-2xl font-bold text-brown-text mb-3">
-                  ابدأ البحث عن عطرك المفضل
-                </h3>
-                <p className="text-lg text-brown-text/70 mb-8 max-w-md mx-auto">
-                  اكتب اسم العطر أو الماركة مثل: Dior، Chanel، Oud، Jasmine
-                </p>
-              </div>
-            )}
-
-            {/* Selected Perfumes (Full Cards with Images) */}
+            {/* ========================================
+                SELECTED PERFUMES - Full Cards with Images
+                ======================================== */}
             {selectedPerfumesList.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-brown-text mb-4">
-                  العطور المختارة ({selectedPerfumesList.length}/{MAX_SELECTIONS})
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-brown-text">
+                    العطور المختارة ({selectedPerfumesList.length}/{MAX_SELECTIONS})
+                  </h2>
+                  {selectedPerfumesList.length > 0 && (
+                    <button
+                      onClick={() => setSelectedPerfumes([])}
+                      className="text-sm text-red-500 hover:text-red-600 font-medium"
+                    >
+                      مسح الكل
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {selectedPerfumesList.map((perfume) => (
-                    <PerfumeCard
-                      key={perfume.id}
-                      variant={perfume.variant}
-                      title={perfume.name}
-                      brand={perfume.brand}
-                      matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
-                      imageUrl={perfume.image}
-                      description={perfume.description}
-                      isSafe={perfume.isSafe}
-                      isSelected={true}
-                      onSelect={() => togglePerfume(perfume.id)}
-                      selectionType="liked"
-                    />
+                    <div key={perfume.id} className="relative group">
+                      {/* Remove Button */}
+                      <button
+                        onClick={() => handleRemovePerfume(perfume.id)}
+                        className="absolute -top-2 -right-2 z-10 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                        aria-label={`إزالة ${perfume.name}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+
+                      {/* Full PerfumeCard with Image */}
+                      <PerfumeCard
+                        id={perfume.id}
+                        variant={perfume.variant}
+                        title={perfume.name}
+                        brand={perfume.brand}
+                        matchPercentage={perfume.matchPercentage ?? perfume.score ?? 0}
+                        imageUrl={perfume.image}
+                        description={perfume.description}
+                        isSafe={perfume.isSafe}
+                        isSelected={true}
+                        onSelect={() => handleRemovePerfume(perfume.id)}
+                        selectionType="liked"
+                        showAddButton={false}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -280,7 +337,7 @@ export default function Step1FavoritesPage() {
         )}
 
         {/* Navigation */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-8 border-t border-brown-text/10">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-8 mt-8 border-t border-brown-text/10">
           <button
             onClick={() => router.push('/')}
             aria-label="العودة للصفحة الرئيسية"

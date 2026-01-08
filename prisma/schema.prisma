@@ -1,0 +1,62 @@
+// Prisma Schema for Ask Seba PWA
+// Database: SQLite (for development)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ============================================
+// PERFUME MODEL
+// ============================================
+model Perfume {
+  id          String   @id @default(cuid())
+  name        String
+  brand       String
+  image       String
+  description String?
+  price       Float?
+  
+  baseScore   Int      @default(50)
+  
+  // Scent Pyramid (JSON string for SQLite)
+  scentPyramid String?  @map("scent_pyramid")
+  
+  // Allergy & Safety Data (JSON strings for SQLite)
+  families        String   @default("[]")
+  ingredients     String   @default("[]")
+  symptomTriggers String   @default("[]") @map("symptom_triggers")
+  
+  isSafe    Boolean  @default(true)
+  status    String   @default("safe")
+  variant   String?
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("perfumes")
+}
+
+// ============================================
+// USER PREFERENCE MODEL
+// ============================================
+model UserPreference {
+  id        String   @id @default(cuid())
+  sessionId String   @unique @map("session_id")
+  
+  likedPerfumes    String @default("[]") @map("liked_perfumes")
+  dislikedPerfumes String @default("[]") @map("disliked_perfumes")
+  allergyProfile   String @default("{}") @map("allergy_profile")
+  scentDNA         String? @map("scent_dna")
+  
+  isComplete Boolean @default(false) @map("is_complete")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_preferences")
+}

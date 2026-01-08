@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { perfumes, type Perfume } from '@/lib/data/perfumes'
+import { prisma, parsePerfumeFromDB } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,27 +7,27 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q') || ''
     const limit = parseInt(searchParams.get('limit') || '50', 10)
 
-    // Filter perfumes by query (name or brand)
-    let results: Perfume[] = perfumes.filter(perfume => {
-      const searchTerm = query.toLowerCase()
-      return (
-        perfume.name.toLowerCase().includes(searchTerm) ||
-        perfume.brand.toLowerCase().includes(searchTerm)
-      )
+    // Use Prisma to search perfumes
+    const dbPerfumes = await prisma.perfume.findMany({
+      where: {
+        OR: [
+          { name: { contains: query } },
+          { brand: { contains: query } }
+        ]
+      },
+      orderBy: { name: 'asc' },
+      take: limit
     })
 
-    // Sort by name ascending (orderBy name asc)
-    results.sort((a, b) => a.name.localeCompare(b.name))
-
-    // Apply limit (take=limit)
-    const take = limit
-    results = results.slice(0, take)
+    // Parse JSON fields from SQLite
+    const results = dbPerfumes.map(parsePerfumeFromDB)
 
     return NextResponse.json({
       perfumes: results,
       total: results.length
     })
-  } catch {
+  } catch (error) {
+    console.error('Search API Error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

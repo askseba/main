@@ -1,8 +1,10 @@
 'use client'
-import React from 'react'
-import { BarChart3 } from 'lucide-react'
+import React, { useState } from 'react'
+import { BarChart3, Check } from 'lucide-react'
+import { useQuiz } from '@/contexts/QuizContext'
 
 interface PerfumeCardProps {
+  id?: string
   variant?: 'on-sale' | 'just-arrived'
   title?: string
   brand?: string
@@ -13,20 +15,48 @@ interface PerfumeCardProps {
   isSelected?: boolean
   onSelect?: () => void
   selectionType?: 'liked' | 'disliked'
+  showAddButton?: boolean
 }
 
 export function PerfumeCard({ 
+  id,
   variant = 'on-sale',
   title = 'عود ملكي فاخر',
   brand = 'أطيار',
   matchPercentage = 90,
   imageUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuALBOCEY2KBnfmkKMp5T6wk7_tpNpYd3gxmLv44JaVnWWHheh5gIzBLiaDI5fKGIARWSWatCeEb4azL5A17HBLlqMqHVuK3B3mVJP3jO-BI7w6oAg5ou-jeK7DuIMj6Fd_QONDQwXlpOjjSEcE84Knt_5z4mBLf1A7QxpZMHAyHOw0YtNyEweRUfJ7Tsxs967MWYSrjlI3dDLoQqWt7pg8oDqHBhO1T_uX29W1QDSJ9EaqoM6FdQ8hSW7f4MY2a-H26q7iDJrV4WnI3',
   description = 'تولیفة ساحرة تجمع بین دهن العود الكمبودي والمسك الأسود.',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isSafe = true,
   isSelected = false,
   onSelect,
-  selectionType = 'liked'
+  selectionType = 'liked',
+  showAddButton = true
 }: PerfumeCardProps) {
+  const { data, setStep } = useQuiz()
+  const [isAdded, setIsAdded] = useState(() => {
+    // Check if perfume is already in liked list
+    return id ? data.step1_liked.includes(id) : false
+  })
+
+  // Handle "Add to Analysis" button click
+  const handleAddToAnalysis = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click event
+    
+    if (!id) return
+    
+    if (isAdded) {
+      // Remove from liked list
+      const newLiked = data.step1_liked.filter(pId => pId !== id)
+      setStep('step1_liked', newLiked)
+      setIsAdded(false)
+    } else {
+      // Add to liked list
+      const newLiked = [...data.step1_liked, id]
+      setStep('step1_liked', newLiked)
+      setIsAdded(true)
+    }
+  }
   // Analytical badge based on matchPercentage
   const getAnalyticalBadge = () => {
     if (matchPercentage >= 80) {
@@ -184,12 +214,31 @@ export function PerfumeCard({
         <div className="h-px w-full bg-brown-text/10 my-1"></div>
 
         {/* Action Button */}
-        <div className="flex items-center justify-center mt-1">
-          <button className="flex-1 h-12 bg-primary hover:bg-primary/90 text-[#291d12] rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_4px_12px_rgba(236,156,19,0.3)]">
-            <BarChart3 className="w-5 h-5" />
-            <span>أضف للتحليل</span>
-          </button>
-        </div>
+        {showAddButton && id && (
+          <div className="flex items-center justify-center mt-1">
+            <button 
+              onClick={handleAddToAnalysis}
+              className={`flex-1 h-12 rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                isAdded 
+                  ? 'bg-green-500 hover:bg-green-600 text-white shadow-[0_4px_12px_rgba(34,197,94,0.3)]'
+                  : 'bg-primary hover:bg-primary/90 text-[#291d12] shadow-[0_4px_12px_rgba(236,156,19,0.3)]'
+              }`}
+              aria-label={isAdded ? 'إزالة من التحليل' : 'أضف للتحليل'}
+            >
+              {isAdded ? (
+                <>
+                  <Check className="w-5 h-5" />
+                  <span>تمت الإضافة ✓</span>
+                </>
+              ) : (
+                <>
+                  <BarChart3 className="w-5 h-5" />
+                  <span>أضف للتحليل</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Low Match Warning (Just Arrived only) */}
         {config.isLowMatch && (

@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { perfumes } from '@/lib/data/perfumes'
@@ -12,27 +12,33 @@ const MAX_SELECTIONS = 12
 
 export default function Step2DislikedPage() {
   const router = useRouter()
-  const [selectedPerfumes, setSelectedPerfumes] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
+  const isInitialized = useRef(false)
+  const [selectedPerfumes, setSelectedPerfumes] = useState<string[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+
+  // Load from sessionStorage on mount (client-side only)
+  // This is a valid use case - reading from storage on mount
+  useEffect(() => {
+    if (!isInitialized.current) {
+      isInitialized.current = true
       const saved = sessionStorage.getItem('step2_disliked')
       if (saved) {
         try {
-          return JSON.parse(saved)
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSelectedPerfumes(JSON.parse(saved))
         } catch (e) {
           console.error('Failed to load step2 disliked:', e)
         }
       }
     }
-    return []
-  })
-  const [searchTerm, setSearchTerm] = useState('')
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  }, [])
 
   // Save to sessionStorage whenever selectedPerfumes changes
   useEffect(() => {
-    sessionStorage.setItem('step2_disliked', JSON.stringify(selectedPerfumes))
+    if (isInitialized.current) {
+      sessionStorage.setItem('step2_disliked', JSON.stringify(selectedPerfumes))
+    }
   }, [selectedPerfumes])
 
   // Debounce search term (300ms)
@@ -49,31 +55,10 @@ export default function Step2DislikedPage() {
   // Calculate loading state based on search term vs debounced term
   const isSearchLoading = searchTerm !== debouncedSearchTerm
 
-  // Load perfumes with error handling
-  const loadPerfumes = useCallback(() => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // Validate perfumes array
-      if (!perfumes || !Array.isArray(perfumes)) {
-        throw new Error('بيانات العطور غير متاحة')
-      }
-      if (perfumes.length === 0) {
-        throw new Error('لا توجد عطور متاحة')
-      }
-      setIsLoading(false)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'حدث خطأ أثناء تحميل العطور. يرجى المحاولة مرة أخرى.'
-      setError(errorMessage)
-      setIsLoading(false)
-      console.error('Error loading perfumes:', err)
-    }
-  }, [])
-
-  // Load perfumes on mount and when debouncedSearchTerm changes
-  useEffect(() => {
-    loadPerfumes()
-  }, [loadPerfumes, debouncedSearchTerm])
+  // Validate perfumes data synchronously
+  const error = (!perfumes || !Array.isArray(perfumes) || perfumes.length === 0) 
+    ? 'بيانات العطور غير متاحة' 
+    : null
 
   // Search functionality - useMemo (exclude already selected perfumes)
   const searchResults = useMemo(() => {
@@ -111,17 +96,17 @@ export default function Step2DislikedPage() {
     }
   }, [selectedPerfumes])
 
-  const handleNext = (perfumesToSave?: string[]) => {
-    const perfumes = perfumesToSave ?? selectedPerfumes
+  const handleNext = () => {
     // Allow skipping (empty array) or proceed with valid selection
-    if (perfumes.length === 0 || (perfumes.length >= MIN_SELECTIONS && perfumes.length <= MAX_SELECTIONS)) {
-      sessionStorage.setItem('quiz_step2', JSON.stringify(perfumes))
+    if (selectedPerfumes.length === 0 || (selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS)) {
+      sessionStorage.setItem('quiz_step2', JSON.stringify(selectedPerfumes))
       router.push('/quiz/step3-allergy')
     }
   }
 
   const handleSkip = () => {
-    handleNext([])
+    sessionStorage.setItem('quiz_step2', JSON.stringify([]))
+    router.push('/quiz/step3-allergy')
   }
 
   const canProceed = selectedPerfumes.length >= MIN_SELECTIONS && selectedPerfumes.length <= MAX_SELECTIONS
@@ -134,11 +119,6 @@ export default function Step2DislikedPage() {
       return []
     }
   }, [selectedPerfumes])
-
-  // Fallback for hydration safety
-  const displayedPerfumes = useMemo(() => {
-    return searchTerm ? searchResults.slice(0, 3) : []
-  }, [searchTerm, searchResults])
 
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
@@ -208,7 +188,7 @@ export default function Step2DislikedPage() {
         {error ? (
           <div className="text-center py-8">
             <p className="text-red-500 mb-4">{error}</p>
-            <CTAButton onClick={loadPerfumes} variant="primary">
+            <CTAButton onClick={() => window.location.reload()} variant="primary">
               إعادة المحاولة
             </CTAButton>
           </div>

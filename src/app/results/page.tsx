@@ -1,13 +1,13 @@
 "use client"
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Filter, ChevronLeft, ChevronRight, Sparkles, DollarSign } from 'lucide-react'
 import { PerfumeCard } from '@/components/ui/PerfumeCard'
 import { MobileFilterModal } from '@/components/ui/MobileFilterModal'
 import { CTAButton } from '@/components/ui/CTAButton'
-import { perfumes } from '@/lib/data/perfumes'
 import { useQuiz } from '@/contexts/QuizContext'
 import { formatPerfumeResultsTitle } from '@/lib/utils/arabicPlural'
+import { type ScoredPerfume } from '@/lib/matching'
 
 interface FilterState {
   minMatch: number
@@ -16,91 +16,118 @@ interface FilterState {
   safeOnly: boolean
 }
 
+interface MatchAPIResponse {
+  success: boolean
+  total: number
+  perfumes: ScoredPerfume[]
+  userScentDNA: string[]
+  hasPreferences: boolean
+}
+
 export default function ResultsPage() {
   const { data: quizData } = useQuiz()
+  
+  // State for API data
+  const [scoredPerfumes, setScoredPerfumes] = useState<ScoredPerfume[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasPreferences, setHasPreferences] = useState(false)
+  const [userScentDNA, setUserScentDNA] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+  
+  // UI State
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>({
     minMatch: 0,
-    maxPrice: 500,
+    maxPrice: 5000,
     family: 'all',
     safeOnly: false,
   })
   const [sortBy, setSortBy] = useState<'match' | 'price-low' | 'price-high' | 'rating'>('match')
   const [currentPage, setCurrentPage] = useState(1)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [isFiltering, setIsFiltering] = useState(false)
   const itemsPerPage = 12
 
-  // Personalized Filter + Sort Logic
-  const personalizedPerfumes = useMemo(() => {
-    // Map allergy ingredient IDs to Arabic names for matching
-    const allergyIngredientMap: Record<string, string[]> = {
-      'jasmine': ['ياسمين', 'jasmine'],
-      'rose': ['ورد', 'rose'],
-      'oud': ['عود', 'oud'],
-      'sandalwood': ['صندل', 'sandalwood'],
-      'vanilla': ['فانيليا', 'vanilla'],
-      'musk': ['مسك', 'musk'],
-      'amber': ['عنبر', 'amber'],
-      'patchouli': ['باتشولي', 'patchouli'],
-      'lavender': ['لافندر', 'lavender'],
-      'bergamot': ['برغموت', 'bergamot'],
-      'pepper': ['فلفل', 'pepper'],
-      'leather': ['جلد', 'leather']
-    }
-    const result = perfumes
-      .map(perfume => {
-        // Calculate personalized match percentage
-        let personalizedMatch = perfume.matchPercentage ?? perfume.score ?? 0
-        
-        // Boost liked perfumes (+20%)
-        if (quizData.step1_liked.includes(perfume.id)) {
-          personalizedMatch = Math.min(100, personalizedMatch + 20)
-        }
-
-        return {
-          ...perfume,
-          personalizedMatch,
-          originalMatch: perfume.matchPercentage ?? perfume.score ?? 0
-        }
-      })
-      .filter(perfume => {
-        // Exclude disliked perfumes
-        if (quizData.step2_disliked.includes(perfume.id)) {
-          return false
-        }
-
-        // Filter by allergy ingredients (check description)
-        const description = (perfume.description || '').toLowerCase()
-        const hasAllergyIngredient = quizData.step3_allergy.ingredients.some(ingId => {
-          const searchTerms = allergyIngredientMap[ingId] || [ingId]
-          return searchTerms.some(term => description.includes(term.toLowerCase()))
+  // Fetch scored perfumes from API
+  useEffect(() => {
+    async function fetchMatchedPerfumes() {
+      setIsLoading(true)
+      setError(null)
+      
+      try {
+        const response = await fetch('/api/match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            preferences: {
+              likedPerfumeIds: quizData.step1_liked,
+              dislikedPerfumeIds: quizData.step2_disliked,
+              allergyProfile: {
+                symptoms: quizData.step3_allergy.symptoms || [],
+                families: quizData.step3_allergy.families || [],
+                ingredients: quizData.step3_allergy.ingredients || []
+              }
+            }
+          })
         })
-        
-        if (hasAllergyIngredient) {
-          return false
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch matched perfumes')
         }
 
-        // Search filter
-        const matchesSearch = 
-          perfume.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          perfume.brand.toLowerCase().includes(searchQuery.toLowerCase())
+        const data: MatchAPIResponse = await response.json()
         
-        if (!matchesSearch) return false
+        if (data.success) {
+          setScoredPerfumes(data.perfumes)
+          setHasPreferences(data.hasPreferences)
+          setUserScentDNA(data.userScentDNA || [])
+        } else {
+          throw new Error('API returned unsuccessful response')
+        }
+      } catch (err) {
+        console.error('Error fetching matches:', err)
+        setError('حدث خطأ أثناء تحميل النتائج')
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-        // Other filters
-        const matchesFilters = 
-          perfume.personalizedMatch >= filters.minMatch &&
-          (perfume.price ?? Infinity) <= filters.maxPrice &&
-          (!filters.safeOnly || perfume.isSafe)
+    fetchMatchedPerfumes()
+  }, [quizData.step1_liked, quizData.step2_disliked, quizData.step3_allergy])
 
-        return matchesFilters
-      })
+  // Client-side filtering (search, price, etc.)
+  const filteredPerfumes = useMemo(() => {
+    let result = [...scoredPerfumes]
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      result = result.filter(perfume =>
+        perfume.name.toLowerCase().includes(query) ||
+        perfume.brand.toLowerCase().includes(query)
+      )
+    }
+
+    // Match percentage filter
+    if (filters.minMatch > 0) {
+      result = result.filter(perfume => perfume.finalScore >= filters.minMatch)
+    }
+
+    // Price filter
+    if (filters.maxPrice < 5000) {
+      result = result.filter(perfume => 
+        (perfume.price ?? 0) <= filters.maxPrice
+      )
+    }
+
+    // Safe only filter
+    if (filters.safeOnly) {
+      result = result.filter(perfume => perfume.safetyScore === 100)
+    }
 
     // Sort
     switch (sortBy) {
       case 'match':
-        result.sort((a, b) => b.personalizedMatch - a.personalizedMatch)
+        result.sort((a, b) => b.finalScore - a.finalScore)
         break
       case 'price-low':
         result.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
@@ -109,14 +136,12 @@ export default function ResultsPage() {
         result.sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
         break
       case 'rating':
-        result.sort((a, b) => b.personalizedMatch - a.personalizedMatch)
+        result.sort((a, b) => b.finalScore - a.finalScore)
         break
     }
 
     return result
-  }, [searchQuery, filters, sortBy, quizData])
-
-  const filteredPerfumes = personalizedPerfumes
+  }, [scoredPerfumes, searchQuery, filters, sortBy])
 
   const totalPages = Math.ceil(filteredPerfumes.length / itemsPerPage)
   const paginatedPerfumes = filteredPerfumes.slice(
@@ -139,14 +164,32 @@ export default function ResultsPage() {
     setCurrentPage(1)
   }
 
-  // Loading state for filters
-  useEffect(() => {
-    setIsFiltering(true)
-    const timer = setTimeout(() => {
-      setIsFiltering(false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [filters, sortBy, searchQuery, currentPage])
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-cream-bg flex items-center justify-center" dir="rtl">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-xl text-brown-text">جاري حساب التوافق...</p>
+          <p className="text-brown-text/60 mt-2">نحلل تفضيلاتك للحصول على أفضل النتائج</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-cream-bg flex items-center justify-center" dir="rtl">
+        <div className="text-center">
+          <p className="text-xl text-red-500 mb-4">{error}</p>
+          <CTAButton onClick={() => window.location.reload()}>
+            إعادة المحاولة
+          </CTAButton>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-cream-bg" dir="rtl">
@@ -158,7 +201,7 @@ export default function ResultsPage() {
           className="mb-12 text-center"
         >
           <h1 className="font-tajawal-bold text-4xl md:text-5xl text-brown-text mb-4">
-            نتائج البحث ({filteredPerfumes.length})
+            نتائج التوافق ({filteredPerfumes.length})
           </h1>
           <p className="text-xl text-brown-text/70 mb-2">
             {filteredPerfumes.length === 0 
@@ -166,10 +209,27 @@ export default function ResultsPage() {
               : `تم العثور على ${formatPerfumeResultsTitle(filteredPerfumes.length)}`
             }
           </p>
-          {(quizData.step1_liked.length > 0 || quizData.step2_disliked.length > 0 || quizData.step3_allergy.ingredients.length > 0) && (
-            <p className="text-lg text-primary font-medium">
-              ✨ نتائج مخصّصة بناءً على إجاباتك
-            </p>
+          
+          {/* Personalization indicator */}
+          {hasPreferences && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mt-4"
+            >
+              <Sparkles className="w-5 h-5" />
+              <span className="font-medium">نتائج مخصّصة بناءً على ذوقك العطري</span>
+            </motion.div>
+          )}
+          
+          {/* User Scent DNA */}
+          {userScentDNA.length > 0 && (
+            <div className="mt-4 text-sm text-brown-text/60">
+              <span>الحمض النووي العطري: </span>
+              <span className="text-primary font-medium">
+                {[...new Set(userScentDNA)].slice(0, 5).join(' • ')}
+              </span>
+            </div>
           )}
         </motion.div>
 
@@ -262,10 +322,26 @@ export default function ResultsPage() {
                   type="range"
                   min="100"
                   max="5000"
+                  step="100"
                   value={filters.maxPrice}
                   onChange={(e) => setFilters({ ...filters, maxPrice: Number(e.target.value) })}
                   className="w-full h-2 bg-primary/10 rounded-lg appearance-none cursor-pointer accent-primary"
                 />
+              </div>
+
+              {/* Score Breakdown Legend */}
+              <div className="mb-6 p-4 bg-cream-bg rounded-xl">
+                <h3 className="font-tajawal-bold text-brown-text mb-3 text-sm">كيف يُحسب التوافق؟</h3>
+                <div className="space-y-2 text-sm text-brown-text/70">
+                  <div className="flex justify-between">
+                    <span>الذوق العطري</span>
+                    <span className="text-primary font-medium">70%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>عامل الأمان</span>
+                    <span className="text-primary font-medium">30%</span>
+                  </div>
+                </div>
               </div>
 
               <CTAButton
@@ -310,7 +386,7 @@ export default function ResultsPage() {
                   variant="primary"
                   onClick={() => {
                     setSearchQuery('')
-                    setFilters({ minMatch: 0, maxPrice: 500, family: 'all', safeOnly: false })
+                    setFilters({ minMatch: 0, maxPrice: 5000, family: 'all', safeOnly: false })
                     setCurrentPage(1)
                   }}
                 >
@@ -320,38 +396,42 @@ export default function ResultsPage() {
             ) : (
               <>
                 {/* Results Grid */}
-                {isFiltering ? (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="aspect-square bg-gray-200 rounded-lg" />
-                        <div className="h-4 bg-gray-200 rounded mt-4 w-3/4" />
-                        <div className="h-4 bg-gray-200 rounded mt-2 w-1/2" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {paginatedPerfumes.map((perfume, index) => (
-                      <motion.div
-                        key={perfume.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                  {paginatedPerfumes.map((perfume, index) => (
+                    <motion.div
+                      key={perfume.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="relative group"
+                    >
+                      <PerfumeCard 
+                        id={perfume.id}
+                        variant={perfume.variant as 'on-sale' | 'just-arrived' | undefined}
+                        title={perfume.name}
+                        brand={perfume.brand}
+                        matchPercentage={perfume.finalScore}
+                        imageUrl={perfume.image}
+                        description={perfume.description || undefined}
+                        isSafe={perfume.safetyScore === 100}
+                      />
+                      
+                      {/* Price Comparison Button - Results Page Only */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const searchQuery = encodeURIComponent(`${perfume.name} ${perfume.brand}`)
+                          window.open(`https://www.google.com/search?q=${searchQuery}+price+buy`, '_blank')
+                        }}
+                        title="مقارنة الأسعار الخارجية"
+                        className="absolute bottom-4 left-4 z-20 w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
+                        aria-label={`قارن أسعار ${perfume.name}`}
                       >
-                        <PerfumeCard 
-                          variant={perfume.variant}
-                          title={perfume.name}
-                          brand={perfume.brand}
-                          matchPercentage={perfume.personalizedMatch ?? perfume.matchPercentage ?? perfume.score ?? 0}
-                          imageUrl={perfume.image}
-                          description={perfume.description}
-                          isSafe={perfume.isSafe}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+                        <DollarSign className="w-5 h-5" />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (

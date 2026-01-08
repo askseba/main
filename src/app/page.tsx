@@ -118,6 +118,7 @@ export default function Home() {
               >
                 <Link href={`/perfume/${perfume.id}`}>
                   <PerfumeCard
+                    id={perfume.id}
                     variant={perfume.variant || 'on-sale'}
                     title={perfume.name}
                     brand={perfume.brand}

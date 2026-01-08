@@ -1,7 +1,7 @@
 // Scent Profile Analysis
 // Calculates user's scent profile based on liked perfumes
 
-import { perfumes, getPerfumeById, type Perfume } from './data/perfumes'
+import { getPerfumeById, type Perfume } from './data/perfumes'
 
 // Scent families with their colors (matching RadarChart)
 export interface ScentFamily {
