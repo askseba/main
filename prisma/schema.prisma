@@ -1,6 +1,41 @@
 // Prisma Schema for Ask Seba PWA
 // Database: SQLite (for development)
 
+// ============================================
+// FEEDBACK SYSTEM MODELS
+// ============================================
+model Suggestion {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String   @default("general")
+  status      String   @default("pending") // 'pending' | 'approved' | 'rejected'
+  publicStatus String? @default("planned") // 'planned' | 'in_progress' | 'under_review' | 'done'
+  userId      String
+  
+  // Relations
+  votes       Vote[]
+  
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@map("suggestions")
+}
+
+model Vote {
+  id           String   @id @default(cuid())
+  suggestionId String   @map("suggestion_id")
+  userId       String   @map("user_id")
+  
+  // Relations
+  suggestion   Suggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  @@unique([suggestionId, userId], name: "suggestionId_userId")
+  @@map("votes")
+}
+
 generator client {
   provider = "prisma-client-js"
 }

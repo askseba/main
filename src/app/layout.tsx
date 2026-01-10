@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Noto_Sans_Arabic, Manrope } from "next/font/google";
 import "./globals.css";
+import { Toaster } from 'sonner';
 import { PWARegister } from "@/components/PWARegister";
 import { SessionProvider } from "@/components/SessionProvider";
 import { QuizProvider } from "@/contexts/QuizContext";
@@ -89,6 +90,13 @@ export default function RootLayout({
         <SessionProvider>
           <QuizProvider>
             {children}
+            <Toaster 
+              position="top-center" 
+              richColors={false}
+              toastOptions={{
+                duration: 3500
+              }}
+            />
             <PWARegister />
           </QuizProvider>
         </SessionProvider>

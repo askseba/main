@@ -1,0 +1,188 @@
+📦 INPUT FILES: [4/7 ✓ | missing: FeedbackModal.tsx, AdminModal.tsx, tooltip.tsx]
+
+PROOF:
+✓ modified_files/app/feedback/page.tsx (lines 1-5):
+  'use client'
+  
+  import { useEffect, useState } from 'react'
+  import { useSession } from 'next-auth/react'
+  import { useRouter } from 'next/navigation'
+
+✓ modified_files/app/api/feedback/suggestions/route.ts (lines 1-5):
+  import { NextResponse } from 'next/server'
+  import { getServerSession } from 'next-auth'
+  import { authOptions } from '@/lib/auth'
+  import { prisma } from '@/lib/prisma'
+
+✓ modified_files/app/api/feedback/suggestions/[id]/vote/route.ts (lines 1-5):
+  import { NextResponse } from 'next/server'
+  import { getServerSession } from 'next-auth'
+  import { authOptions } from '@/lib/auth'
+  import { prisma } from '@/lib/prisma'
+
+✓ modified_files/components/FeedbackCard.tsx (lines 1-5):
+  'use client'
+  
+  import { useState } from 'react'
+  import { motion } from 'framer-motion'
+  import { Flame, Sparkles } from 'lucide-react'
+
+✗ extracted_files/feedback_new/FeedbackModal.tsx → NOT_FOUND
+✗ extracted_files/feedback_new/AdminModal.tsx → NOT_FOUND
+  NOTE: extracted_files/feedback_new/admin_modal_v23.ts EXISTS (lines 1-5):
+  import { useEffect, useState } from 'react'
+  import { toast } from 'sonner'
+  import { Button } from '@/components/ui/button'
+  
+  interface PendingSuggestion {
+
+✗ extracted_files/feedback_new/tooltip.tsx → NOT_FOUND
+
+---
+
+📍 DEST CONFLICTS: [0/6 existing | all safe to create]
+
+PROOF:
+✗ src/app/feedback/page.tsx → NOT_FOUND
+✗ src/app/api/feedback/suggestions/route.ts → NOT_FOUND
+✗ src/components/FeedbackCard.tsx → NOT_FOUND
+✗ src/components/FeedbackModal.tsx → NOT_FOUND
+✗ src/components/ui/tooltip.tsx → NOT_FOUND
+✗ src/app/layout.tsx → <Toaster /> NOT_FOUND
+  PROOF: src/app/layout.tsx lines 84-98:
+  return (
+    <html lang="ar" dir="rtl" className={`${notoSansArabic.variable} ${manrope.variable}`}>
+      <body
+        className={`${notoSansArabic.className} antialiased`}
+      >
+        <SessionProvider>
+          <QuizProvider>
+            {children}
+            <PWARegister />
+          </QuizProvider>
+        </SessionProvider>
+      </body>
+    </html>
+  );
+  (No <Toaster /> found)
+
+---
+
+🧩 PREREQS:
+deps: [0/3 ✓ | missing: sonner, @radix-ui/react-tooltip, @radix-ui/react-dialog]
+  PROOF: package.json lines 15-25 (dependencies section):
+  "dependencies": {
+    "@prisma/client": "^6.19.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.26",
+    "lucide-react": "^0.562.0",
+    "next": "16.1.1",
+    "next-auth": "^5.0.0-beta.30",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "tailwind-merge": "^3.4.0"
+  }
+  (No sonner, no @radix-ui packages found)
+
+prisma: User✗ Suggestion✗ Vote✗
+  PROOF: prisma/schema.prisma lines 16-62:
+  model Perfume {
+    id          String   @id @default(cuid())
+    ...
+  }
+  
+  model UserPreference {
+    id        String   @id @default(cuid())
+    ...
+  }
+  (Only Perfume and UserPreference models found, no User, Suggestion, or Vote)
+
+auth: authOptions✗ role✗
+  PROOF: src/auth.ts lines 5-78:
+  export const { handlers, signIn, signOut, auth } = NextAuth({
+    ...
+    callbacks: {
+      async jwt({ token, user }) {
+        if (user) {
+          token.id = user.id
+          token.name = user.name
+          token.email = user.email
+          token.image = user.image
+        }
+        return token
+      },
+      async session({ session, token }) {
+        if (session.user) {
+          session.user.id = token.id as string
+        }
+        return session
+      }
+    }
+  })
+  (No authOptions export, no role in token or session)
+
+---
+
+🎨 THEME: RTL✓ cream✗ utils✓
+
+PROOF:
+RTL: ✓ src/app/layout.tsx line 85:
+  <html lang="ar" dir="rtl" className={`${notoSansArabic.variable} ${manrope.variable}`}>
+
+cream/brown vars: ✗ src/app/globals.css (no cream/brown variables found):
+  @import "tailwindcss";
+  
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+  (No --cream-bg, --brown-text, or similar variables)
+
+utils cn(): ✓ src/lib/utils.ts line 4:
+  export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs))
+  }
+
+---
+
+⚠️ RISK: RED
+
+BLOCKERS:
+1. MISSING: FeedbackModal.tsx (critical - page.tsx imports it)
+2. MISSING: 3 dependencies (sonner, @radix-ui/react-tooltip, @radix-ui/react-dialog)
+3. MISSING: Prisma models (Suggestion, Vote)
+4. MISSING: authOptions export (routes import from @/lib/auth)
+5. MISSING: session.user.role callback (admin check fails)
+6. MISSING: <Toaster /> in layout.tsx
+7. MISSING: tooltip.tsx component
+
+---
+
+✅ READY: NO → [FeedbackModal.tsx, deps install, Prisma migration, auth path fix, role callback, Toaster, tooltip.tsx]
+
+---
+
+NEXT STEPS IF READY:
+
+npm i sonner @radix-ui/react-tooltip @radix-ui/react-dialog
+
+[fix auth path - create src/lib/auth.ts or update route imports to use src/auth.ts]
+
+[add Prisma models Suggestion + Vote to schema.prisma]
+
+[run: npx prisma migrate dev --name add_feedback_models]
+
+[add role to JWT and session callbacks in src/auth.ts]
+
+[create FeedbackModal.tsx component]
+
+[create src/components/ui/tooltip.tsx (Radix wrapper)]
+
+[add <Toaster /> from sonner to src/app/layout.tsx]
+
+[move admin_modal_v23.ts → AdminModal.tsx]
+
+---
+
+VALIDATION COMPLETE - READ ONLY - NO CHANGES MADE

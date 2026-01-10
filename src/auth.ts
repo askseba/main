@@ -59,18 +59,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: 'jwt' 
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
         token.name = user.name
         token.email = user.email
         token.image = user.image
+        token.bio = user.bio
+      }
+      // تحديث التوكن عند استخدام update() من الواجهة
+      if (trigger === 'update' && session) {
+        token.bio = session.bio || token.bio
+        token.image = session.image || token.image
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.bio = token.bio as string | undefined
+        session.user.image = token.image as string | undefined
       }
       return session
     }
