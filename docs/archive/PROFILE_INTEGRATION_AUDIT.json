@@ -1,0 +1,272 @@
+{
+  "current_state": {
+    "profile_page_exists": "NO",
+    "profile_api_exists": "NO",
+    "upload_avatar_api_exists": "NO",
+    "user_schema_exists": "NO",
+    "user_schema_fields": [],
+    "auth_support": "PARTIAL",
+    "deps_status": {
+      "@vercel/blob": "MISSING",
+      "uuid": "MISSING",
+      "framer-motion": "INSTALLED v12.23.26",
+      "lucide-react": "INSTALLED v0.562.0",
+      "next/image": "AVAILABLE (via Next.js 16.1.1)",
+      "shadcn/tooltip": "NOT FOUND",
+      "shadcn/dialog": "NOT FOUND"
+    }
+  },
+  "evidence": {
+    "profile_page": {
+      "path": "src/app/profile/page.tsx",
+      "exists": false,
+      "evidence": "glob_file_search('**/profile/**') returned 0 results"
+    },
+    "upload_avatar_api": {
+      "path": "src/app/api/upload-avatar/route.ts",
+      "exists": false,
+      "evidence": "glob_file_search('**/upload-avatar/**') returned 0 results"
+    },
+    "existing_api_routes": {
+      "paths": [
+        "src/app/api/auth/[...nextauth]/route.ts",
+        "src/app/api/match/route.ts",
+        "src/app/api/perfumes/search/route.ts"
+      ],
+      "evidence": "list_dir('src/app/api') confirmed only 3 route directories exist"
+    },
+    "prisma_schema": {
+      "path": "prisma/schema.prisma",
+      "line_count": 63,
+      "models": ["Perfume", "UserPreference"],
+      "user_model_exists": false,
+      "evidence": "Lines 1-63: Only Perfume (id, name, brand, image, description, price, baseScore, scentPyramid, families, ingredients, symptomTriggers, isSafe, status, variant, createdAt, updatedAt) and UserPreference (id, sessionId, likedPerfumes, dislikedPerfumes, allergyProfile, scentDNA, isComplete, createdAt, updatedAt) models exist. No User model found."
+    },
+    "auth_callbacks": {
+      "path": "src/auth.ts",
+      "jwt_callback": {
+        "lines": "62-69",
+        "code": "async jwt({ token, user }) {\n  if (user) {\n    token.id = user.id\n    token.name = user.name\n    token.email = user.email\n    token.image = user.image\n  }\n  return token\n}",
+        "status": "token.image SET"
+      },
+      "session_callback": {
+        "lines": "71-76",
+        "code": "async session({ session, token }) {\n  if (session.user) {\n    session.user.id = token.id as string\n  }\n  return session\n}",
+        "status": "session.user.image/bio NOT PROPAGATED - only id is set"
+      },
+      "evidence": "token.image is set in JWT callback (line 67) but session callback does not propagate image/bio to session.user (lines 72-74 only set id)"
+    },
+    "layout_components": {
+      "path": "src/app/layout.tsx",
+      "lines": "79-98",
+      "components_used": ["SessionProvider", "QuizProvider", "PWARegister"],
+      "user_avatar_component": "NOT FOUND",
+      "profile_link_component": "NOT FOUND",
+      "evidence": "No UserAvatar or ProfileLink components imported or used in layout.tsx"
+    },
+    "dashboard_avatar_usage": {
+      "path": "src/app/dashboard/page.tsx",
+      "lines": "79-95",
+      "code": "{session.user?.image ? (\n  <div className=\"relative w-20 h-20 rounded-full ring-4 ring-white/50 shadow-lg overflow-hidden\">\n    <Image \n      src={session.user.image} \n      alt={`صورة الملف الشخصي لـ ${session.user.name || 'المستخدم'}`}\n      fill\n      className=\"object-cover\"\n    />\n  </div>\n) : (\n  <div className=\"w-20 h-20 rounded-full ring-4 ring-white/50 shadow-lg bg-white/20 flex items-center justify-center text-3xl font-bold\">\n    {(session.user?.name || 'U')[0].toUpperCase()}\n  </div>\n)}",
+      "status": "Avatar displayed but no profile link/button",
+      "evidence": "Dashboard shows session.user.image in header (line 82) but no link to /profile page exists"
+    },
+    "theme_colors": {
+      "path": "tailwind.config.ts",
+      "lines": "14-26",
+      "colors": {
+        "cream-bg": "#F2F0EB",
+        "brown-text": "#5B4233",
+        "primary": "#c0841a",
+        "safe-green": "#10B981"
+      },
+      "evidence": "Tailwind config confirms cream-bg, brown-text, primary colors defined (lines 14-16)"
+    },
+    "rtl_support": {
+      "path": "src/app/layout.tsx",
+      "line": "85",
+      "code": "<html lang=\"ar\" dir=\"rtl\" className={`${notoSansArabic.variable} ${manrope.variable}`}>",
+      "evidence": "RTL direction confirmed in root HTML element"
+    },
+    "next_auth_session_type": {
+      "current_usage": "session.user.id, session.user.name, session.user.email, session.user.image (displayed but not fully typed in session callback)",
+      "missing": "session.user.bio - not in callbacks"
+    }
+  },
+  "conflicts": [
+    {
+      "file": "src/app/profile/page.tsx",
+      "line": "N/A",
+      "issue": "FILE DOES NOT EXIST - safe to create",
+      "risk": "GREEN",
+      "evidence": "No profile page exists, no conflict possible"
+    },
+    {
+      "file": "src/app/api/upload-avatar/route.ts",
+      "line": "N/A",
+      "issue": "FILE DOES NOT EXIST - safe to create",
+      "risk": "GREEN",
+      "evidence": "No upload-avatar route exists, no conflict possible"
+    },
+    {
+      "file": "src/auth.ts",
+      "line": "71-76",
+      "issue": "session callback does not propagate image/bio from token",
+      "risk": "MEDIUM",
+      "evidence": "session callback (lines 71-76) only sets session.user.id, but token.image exists (line 67). Need to add session.user.image = token.image and session.user.bio = token.bio",
+      "action_required": "UPDATE session callback to propagate image/bio"
+    },
+    {
+      "file": "prisma/schema.prisma",
+      "line": "N/A",
+      "issue": "No User model exists - only UserPreference with sessionId",
+      "risk": "HIGH",
+      "evidence": "Schema has Perfume and UserPreference models, but no User model. NextAuth uses JWT strategy (line 59 in auth.ts), so database User model may not be required. However, if profile data needs persistence, need to decide: JWT-only (no DB) or add User model. Current evidence suggests JWT-only approach.",
+      "action_required": "DECISION NEEDED: Use JWT-only (no migration) or create User model with migration"
+    },
+    {
+      "file": "src/app/dashboard/page.tsx",
+      "line": "79-95",
+      "issue": "No profile navigation link/button",
+      "risk": "LOW",
+      "evidence": "Dashboard displays avatar but no link to /profile. Add profile link after avatar or in header.",
+      "action_required": "OPTIONAL: Add profile navigation link in dashboard header"
+    }
+  ],
+  "deps_missing": [
+    "@vercel/blob@latest",
+    "uuid@^10.0.0"
+  ],
+  "deps_optional_but_recommended": [
+    "@radix-ui/react-dialog",
+    "@radix-ui/react-tooltip",
+    "@radix-ui/react-avatar"
+  ],
+  "safe_plan": [
+    {
+      "step": 1,
+      "action": "npm install @vercel/blob uuid",
+      "command": "npm install @vercel/blob uuid",
+      "reason": "Required for avatar upload API route"
+    },
+    {
+      "step": 2,
+      "action": "Create src/app/api/upload-avatar/route.ts",
+      "type": "CREATE",
+      "path": "src/app/api/upload-avatar/route.ts",
+      "conflict": "NONE - file does not exist",
+      "risk": "GREEN"
+    },
+    {
+      "step": 3,
+      "action": "Create src/app/profile/page.tsx",
+      "type": "CREATE",
+      "path": "src/app/profile/page.tsx",
+      "conflict": "NONE - file does not exist",
+      "risk": "GREEN"
+    },
+    {
+      "step": 4,
+      "action": "UPDATE src/auth.ts - session callback to propagate image/bio",
+      "type": "UPDATE",
+      "path": "src/auth.ts",
+      "line": "71-76",
+      "current_code": "async session({ session, token }) {\n  if (session.user) {\n    session.user.id = token.id as string\n  }\n  return session\n}",
+      "required_change": "Add session.user.image = token.image and session.user.bio = token.bio",
+      "risk": "MEDIUM - must ensure token.image and token.bio are set in JWT callback first"
+    },
+    {
+      "step": 5,
+      "action": "UPDATE src/auth.ts - JWT callback to handle bio",
+      "type": "UPDATE",
+      "path": "src/auth.ts",
+      "line": "62-69",
+      "current_code": "if (user) {\n  token.id = user.id\n  token.name = user.name\n  token.email = user.email\n  token.image = user.image\n}",
+      "required_change": "Add token.bio = user.bio if user.bio exists",
+      "risk": "LOW"
+    },
+    {
+      "step": 6,
+      "action": "OPTIONAL: Add profile link in dashboard header",
+      "type": "UPDATE",
+      "path": "src/app/dashboard/page.tsx",
+      "line": "79-95",
+      "risk": "LOW - cosmetic only"
+    },
+    {
+      "step": 7,
+      "action": "Add BLOB_READ_WRITE_TOKEN to environment variables",
+      "type": "ENV_CONFIG",
+      "file": ".env.local",
+      "required": "BLOB_READ_WRITE_TOKEN=vercel_blob_token_here",
+      "risk": "HIGH - upload will fail without this"
+    },
+    {
+      "step": 8,
+      "action": "Test flow: login → /profile → upload avatar → check session refresh → /dashboard avatar update",
+      "type": "TEST",
+      "risk": "GREEN - validation step"
+    }
+  ],
+  "risk_level": "YELLOW",
+  "risk_reasons": [
+    "JWT-only auth strategy - no database User model exists. Profile data (image/bio) must be stored in JWT token or separate storage (Vercel Blob for images).",
+    "Session callback needs update to propagate image/bio from token.",
+    "Environment variable BLOB_READ_WRITE_TOKEN required for upload API to work.",
+    "If profile data needs persistence across sessions, consider adding User model to Prisma schema (requires migration)."
+  ],
+  "database_strategy_decision": {
+    "current": "JWT-only (no User model in database)",
+    "options": [
+      {
+        "option": "JWT-only (recommended for MVP)",
+        "pros": ["No migration needed", "Fast implementation", "Matches current auth strategy"],
+        "cons": ["Token size limit", "No profile history", "Requires token refresh on profile update"],
+        "evidence": "auth.ts line 59: session strategy = 'jwt', no Prisma User model exists"
+      },
+      {
+        "option": "Add User model to database",
+        "pros": ["Persistent profile data", "Profile history", "No token size concerns"],
+        "cons": ["Requires migration", "More complex auth flow", "Need to sync JWT with DB"],
+        "migration_needed": true,
+        "migration_name": "add_user_model_with_profile"
+      }
+    ],
+    "recommendation": "JWT-only for MVP, migrate to User model later if persistence needed"
+  },
+  "manus_instructions": [
+    "1. CRITICAL: Update src/auth.ts session callback (lines 71-76) to propagate image/bio: session.user.image = token.image as string | null; session.user.bio = token.bio as string | null;",
+    "2. CRITICAL: Add BLOB_READ_WRITE_TOKEN environment variable to .env.local (required for /api/upload-avatar)",
+    "3. Verify RTL classes in profile page.tsx match existing cream/brown theme (bg-cream-bg, text-brown-text, border-brown-text/20, bg-primary)",
+    "4. Ensure profile page.tsx uses same font classes as dashboard: Noto_Sans_Arabic, dir=\"rtl\"",
+    "5. If profile page uses shadcn dialog/tooltip, install @radix-ui/react-dialog and @radix-ui/react-tooltip first",
+    "6. Test: After avatar upload, verify session.user.image updates in dashboard without page refresh (may need token refresh)",
+    "7. OPTIONAL: Add profile link/button in dashboard header (line 79-95) that navigates to /profile"
+  ],
+  "style_validation": {
+    "theme_colors_match": true,
+    "rtl_support_confirmed": true,
+    "font_classes": "var(--font-arabic) from Noto_Sans_Arabic confirmed in layout.tsx",
+    "tailwind_classes_to_use": [
+      "bg-cream-bg",
+      "text-brown-text",
+      "border-brown-text/20",
+      "bg-primary",
+      "text-primary",
+      "bg-white/70",
+      "backdrop-blur-sm",
+      "rounded-3xl",
+      "shadow-2xl"
+    ],
+    "evidence": "tailwind.config.ts lines 14-16 confirm cream-bg (#F2F0EB), brown-text (#5B4233), primary (#c0841a). Dashboard page.tsx uses these classes as reference."
+  },
+  "next_config_requirements": {
+    "vercel_blob_hostname_needed": false,
+    "evidence": "Vercel Blob uses public URLs, no need to add hostname to next.config.ts remotePatterns. Images are served from *.public.blob.vercel-storage.com",
+    "current_remote_patterns": [
+      "via.placeholder.com",
+      "images.unsplash.com",
+      "lh3.googleusercontent.com"
+    ]
+  }
+}
