@@ -52,14 +52,14 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
 
     return (
       <svg 
-        viewBox="0 0 200 120" 
-        className="w-[200px] h-[120px] flex-shrink-0"
+        viewBox="0 0 200 200" 
+        className="w-32 h-32 flex-shrink-0"
         aria-label={`Progress circle showing ${stage.score}% match`}
       >
         {/* Background circles */}
         <circle 
           cx="100" 
-          cy="60" 
+          cy="100" 
           r="50" 
           fill="none" 
           stroke={config.circleColors[0]} 
@@ -67,11 +67,11 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={circumference - (stage.score / 100) * circumference}
           className="transition-all duration-500"
-          transform="rotate(-90 100 60)"
+          transform="rotate(-90 100 100)"
         />
         <circle 
           cx="100" 
-          cy="60" 
+          cy="100" 
           r="40" 
           fill="none" 
           stroke={config.circleColors[1]} 
@@ -79,11 +79,11 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
           strokeDasharray={`${circumference * 0.8} ${circumference * 0.8}`}
           strokeDashoffset={(circumference * 0.8) - ((stage.score / 100) * circumference * 0.8)}
           className="transition-all duration-500"
-          transform="rotate(-90 100 60)"
+          transform="rotate(-90 100 100)"
         />
         <circle 
           cx="100" 
-          cy="60" 
+          cy="100" 
           r="30" 
           fill="none" 
           stroke={config.circleColors[2]} 
@@ -91,15 +91,15 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
           strokeDasharray={`${circumference * 0.6} ${circumference * 0.6}`}
           strokeDashoffset={(circumference * 0.6) - ((stage.score / 100) * circumference * 0.6)}
           className="transition-all duration-500"
-          transform="rotate(-90 100 60)"
+          transform="rotate(-90 100 100)"
         />
         
         {/* Score text */}
         <text 
           x="100" 
-          y="65" 
+          y="110" 
           textAnchor="middle" 
-          className="text-2xl font-bold fill-brown-text"
+          className="text-xl font-bold fill-brown-text"
           aria-hidden="true"
         >
           {stage.score}%
@@ -130,7 +130,7 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
             }}
             onHoverStart={() => setHoveredIndex(index)}
             onHoverEnd={() => setHoveredIndex(null)}
-            className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all cursor-pointer ${
+            className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${
               config.bg
             } ${config.border} ${
               hoveredIndex === index ? 'ring-2 ring-offset-2 ring-offset-cream-bg' : ''
@@ -177,7 +177,7 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
             
             {/* Stage Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-brown-text text-lg mb-1">
+              <p className="font-bold text-brown-text text-sm mb-1 truncate">
                 {stage.stageName || `Stage ${index + 1}`}: {stage.score}%
               </p>
               <span 
@@ -187,7 +187,7 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
                 {stage.status.toUpperCase()}
               </span>
               {stage.notes && (
-                <p className="text-sm text-brown-text/70 mt-1 line-clamp-2" aria-label={`Notes: ${stage.notes}`}>
+                <p className="text-xs text-brown-text/70 mt-1 line-clamp-2" aria-label={`Notes: ${stage.notes}`}>
                   {stage.notes}
                 </p>
               )}

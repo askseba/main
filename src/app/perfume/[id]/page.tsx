@@ -1,10 +1,10 @@
 import { Suspense } from 'react'
 import { SmartImage } from '@/components/ui/SmartImage'
-import { ShareButton } from '@/components/ui/ShareButton'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { SpeedometerGauge } from '@/components/ui/SpeedometerGauge'
 import { PerfumeTimeline } from '@/components/ui/PerfumeTimeline'
 import { getPerfumeById, normalizePerfume, perfumes } from '@/lib/data/perfumes'
+import { PerfumeDetailCTA } from './PerfumeDetailCTA'
 
 interface PerfumeDetailProps {
   params: Promise<{ id: string }>
@@ -73,36 +73,8 @@ export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
               />
             </Suspense>
             
-            {/* CTA Buttons */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button 
-                className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-safe-green text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl hover:-translate-y-1 transition-all col-span-2 md:col-span-1"
-                aria-label="شراء العطر الآن"
-              >
-                🛒 اشترِ الآن
-              </button>
-              <button 
-                className="px-8 py-4 bg-white border-2 border-brown-text rounded-3xl font-bold hover:bg-brown-text hover:text-white transition-all"
-                aria-label="طلب عينة بحجم 25 مل"
-              >
-                📦 عينة 25ر
-              </button>
-              <button 
-                className="px-8 py-4 bg-[#EBE1DD]/50 border-2 border-[#EBE1DD]/50 rounded-3xl font-bold hover:shadow-xl transition-all"
-                aria-label="حفظ العطر في قائمة المفضلة"
-              >
-                ♡ حفظ
-              </button>
-            </div>
-            
-            {/* Share Button */}
-            <div className="flex justify-center mt-6">
-              <ShareButton 
-                title={`${perfume.name} - ${perfume.brand}`}
-                text={`صبا اختارت لي ${perfume.name} بنسبة ${perfume.score ?? 85}% 🎯 ✅ آمن تماماً`}
-                variant="secondary"
-              />
-            </div>
+            {/* CTA Section */}
+            <PerfumeDetailCTA perfume={perfume} />
           </div>
         </div>
       </div>

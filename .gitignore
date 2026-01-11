@@ -43,3 +43,11 @@ next-env.d.ts
 /src/generated/prisma
 
 /src/generated/prisma
+
+# Diagnostic reports and audit files
+*_REPORT*.json
+*_AUDIT*.json
+*_REPORT*.md
+*_AUDIT*.md
+safety_backup.sh
+docs/archive/
