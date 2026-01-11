@@ -1,0 +1,12 @@
+{
+  "terminal_error": "[01:43:05.704] Server  ERROR   ⚠️ Error: ENOENT: no such file or directory, open 'C:\\Users\\HP\\Desktop\\f5-new\\.next\\dev\\server\\pages\\_app\\build-manifest.json'\n[01:43:05.710] Server  ERROR   TurbopackInternalError: Failed to write app endpoint /perfume/[id]/page\n\nCaused by:\n- Failed to restore task data (corrupted database or bug): Meta for <ModuleAssetContext as AssetContext>::process (TaskId 40752)\n\nDebug info:\n- Execution of get_written_endpoint_with_issues_operation failed\n- Execution of endpoint_write_to_disk failed\n- Execution of <AppEndpoint as Endpoint>::output failed\n- Failed to write app endpoint /perfume/[id]/page\n- Execution of AppEndpoint::output failed\n- Execution of get_app_page_entry failed\n- Execution of *<NextServerComponentTransition as Transition>::process_module failed\n- Execution of StructuredImageModuleType::create_module failed\n- Failed to restore task data (corrupted database or bug): Meta for <ModuleAssetContext as AssetContext>::process (TaskId 40752)\n  \n  Caused by:\n      0: Looking up data for TaskId 40752 from database failed\n      1: Unable to open static sorted file referenced from 00000077.meta\n      2: Unable to open static sorted file 00000073.sst\n      3: The system cannot find the file specified. (os error 2)",
+  "network_response": "No 500 error in network tab - page loads successfully (200 OK). Only WebSocket HMR connection (101 status)",
+  "browser_console": "No errors - only standard warnings: React DevTools, HMR connected",
+  "page_loads": true,
+  "test_page_works": false,
+  "test_page_note": "Test page not needed - actual page works, issue is build system",
+  "error_type": "TurbopackInternalError - Build cache corruption",
+  "error_location": "Next.js/Turbopack build system - not in user code",
+  "affected_line": "N/A - Build system issue, not code error",
+  "confession": "500 error is NOT in user code - it's a Turbopack build cache corruption. Error occurs in Next.js build system trying to write /perfume/[id]/page endpoint. The page actually loads successfully in browser (200 OK), but build process fails. Solution: Delete .next directory and restart dev server (rm -rf .next && npm run dev). The console.log statements added to page.tsx run on server (Server Component), so they appear in terminal logs, not browser console. No actual 500 error occurs - page renders fine, but build warnings appear in terminal."
+}

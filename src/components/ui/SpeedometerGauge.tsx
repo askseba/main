@@ -110,10 +110,10 @@ export function SpeedometerGauge({ score, status }: SpeedometerProps) {
           {Math.round(animatedScore)}%
         </motion.div>
         <div 
-          className={`text-lg font-bold mt-2 px-4 py-2 rounded-2xl shadow-lg ${
-            status === 'safe' ? 'bg-gauge-safe/20 text-gauge-safe border-2 border-gauge-safe/50' :
-            status === 'warning' ? 'bg-gauge-warning/20 text-gauge-warning border-2 border-gauge-warning/50' :
-            'bg-gauge-danger/20 text-gauge-danger border-2 border-gauge-danger/50'
+          className={`text-lg font-bold mt-2 shadow-lg ${
+            status === 'safe' ? 'bg-green-100 text-green-800 px-3 py-1.5 rounded-full' :
+            status === 'warning' ? 'bg-gauge-warning/20 text-gauge-warning border-2 border-gauge-warning/50 px-4 py-2 rounded-2xl' :
+            'bg-gauge-danger/20 text-gauge-danger border-2 border-gauge-danger/50 px-4 py-2 rounded-2xl'
           }`}
           aria-live="polite"
         >

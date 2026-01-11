@@ -1,0 +1,108 @@
+{
+  "perfume_detail_cta": {
+    "buttons": [
+      {
+        "position": "left",
+        "text": "🛒 اشترِ الآن",
+        "icon": "shopping_cart (emoji 🛒)",
+        "classes": "px-8 py-4 bg-gradient-to-r from-emerald-600 to-safe-green text-white rounded-3xl font-bold shadow-2xl hover:shadow-3xl hover:-translate-y-1 transition-all col-span-2 md:col-span-1",
+        "action": "none (no onClick handler)",
+        "result": "nothing - button does nothing",
+        "aria-label": "شراء العطر الآن",
+        "state": "enabled",
+        "layout": "col-span-2 on mobile, col-span-1 on desktop (md:col-span-1)"
+      },
+      {
+        "position": "middle",
+        "text": "📦 عينة 25ر",
+        "icon": "package (emoji 📦)",
+        "classes": "px-8 py-4 bg-white border-2 border-brown-text rounded-3xl font-bold hover:bg-brown-text hover:text-white transition-all",
+        "action": "none (no onClick handler)",
+        "result": "nothing - button does nothing",
+        "aria-label": "طلب عينة بحجم 25 مل",
+        "state": "enabled",
+        "layout": "normal column (no col-span)"
+      },
+      {
+        "position": "right",
+        "text": "♡ حفظ",
+        "icon": "favorite (emoji ♡)",
+        "classes": "px-8 py-4 bg-[#EBE1DD]/50 border-2 border-[#EBE1DD]/50 rounded-3xl font-bold hover:shadow-xl transition-all",
+        "action": "none (no onClick handler)",
+        "result": "nothing - button does nothing",
+        "aria-label": "حفظ العطر في قائمة المفضلة",
+        "state": "enabled",
+        "layout": "normal column (no col-span)"
+      }
+    ],
+    "layout": "grid grid-cols-1 md:grid-cols-3 gap-4",
+    "mobile_vs_desktop": "Mobile: stacked (3 buttons vertical), Desktop: 3 buttons horizontal. Button 1 spans 2 columns on mobile (col-span-2) but only 1 on desktop (md:col-span-1). Buttons 2 and 3 are normal width on both.",
+    "share_button": {
+      "position": "below CTA buttons, centered",
+      "text": "شارك",
+      "icon": "Share2 (lucide-react)",
+      "classes": "px-6 py-3 bg-white border-2 border-primary text-primary rounded-full font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2",
+      "action": "onClick={handleShare}",
+      "result": "Web Share API (navigator.share) or fallback to clipboard copy",
+      "variant": "secondary",
+      "state": "enabled",
+      "code_location": "src/components/ui/ShareButton.tsx:76"
+    }
+  },
+  "results_page": {
+    "perfume_cards": {
+      "card_click_navigation": "غير موجود - PerfumeCard in results page has NO Link wrapper. Clicking card does nothing.",
+      "card_code_location": "src/app/results/page.tsx:408-417",
+      "card_wrapper": "motion.div (no Link)",
+      "price_comparison_button": {
+        "position": "absolute bottom-4 left-4 (overlay on card)",
+        "icon": "DollarSign (lucide-react)",
+        "classes": "absolute bottom-4 left-4 z-20 w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95",
+        "action": "onClick={(e) => { e.stopPropagation(); const searchQuery = encodeURIComponent(`${perfume.name} ${perfume.brand}`); window.open(`https://www.google.com/search?q=${searchQuery}+price+buy`, '_blank'); }}",
+        "result": "Opens Google Search in new tab with query: '[perfume name] [brand] price buy'",
+        "visibility": "hidden by default (opacity-0), shows on card hover (group-hover:opacity-100)",
+        "aria-label": "قارن أسعار [perfume name]",
+        "title": "مقارنة الأسعار الخارجية",
+        "code_location": "src/app/results/page.tsx:420-431"
+      },
+      "add_to_analysis_button": {
+        "position": "inside PerfumeCard component, bottom section",
+        "text": "أضف للتحليل",
+        "icon": "BarChart3 (lucide-react) or Check when added",
+        "classes": "flex-1 h-12 rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 bg-primary hover:bg-primary/90 text-[#291d12] (or bg-green-500 when added)",
+        "action": "onClick={handleAddToAnalysis} - adds/removes perfume ID to/from QuizContext step1_liked",
+        "result": "Updates QuizContext, toggles button state (green with Check icon when added)",
+        "code_location": "src/components/ui/PerfumeCard.tsx:43-59, 219-240"
+      }
+    }
+  },
+  "code_locations": [
+    "src/app/perfume/[id]/page.tsx:76-96 (CTA buttons section)",
+    "src/app/perfume/[id]/page.tsx:98-105 (Share button section)",
+    "src/app/results/page.tsx:408-417 (PerfumeCard wrapper)",
+    "src/app/results/page.tsx:420-431 (Price comparison button)",
+    "src/components/ui/PerfumeCard.tsx:219-240 (Add to analysis button)",
+    "src/components/ui/ShareButton.tsx:27-66 (Share functionality)"
+  ],
+  "current_flow": {
+    "results_to_detail": "BROKEN - No navigation. PerfumeCard in results page is NOT wrapped in Link. User cannot click card to go to detail page.",
+    "detail_cta_buttons": "NON-FUNCTIONAL - All 3 CTA buttons (Buy, Sample, Save) have NO onClick handlers. They are static buttons that do nothing.",
+    "detail_share_button": "FUNCTIONAL - ShareButton works with Web Share API or clipboard fallback."
+  },
+  "missing_functionality": {
+    "perfume_detail_buy_button": "غير موجود - No onClick handler, no href, no router.push",
+    "perfume_detail_sample_button": "غير موجود - No onClick handler, no href, no router.push",
+    "perfume_detail_save_button": "غير موجود - No onClick handler, no handler for wishlist/favorites",
+    "results_card_navigation": "غير موجود - PerfumeCard not wrapped in Link to navigate to /perfume/[id]",
+    "price_display": "غير موجود - No price shown on perfume detail page CTA buttons"
+  },
+  "rtl_impact": {
+    "perfume_detail_layout": "RTL: Buttons are in right-to-left order. Button 1 (Buy) appears on right, Button 3 (Save) appears on left.",
+    "results_price_button": "RTL: Position absolute bottom-4 left-4 means it appears on left side (RTL left = visual right)"
+  },
+  "mobile_testing": {
+    "perfume_detail_cta": "Mobile: Buttons stack vertically. Button 1 (Buy) takes full width (col-span-2 on mobile). Buttons 2 and 3 take full width each.",
+    "results_price_button": "Mobile: Still appears on hover, same position. May be hard to tap on small screens."
+  },
+  "console_errors": "No console errors when clicking buttons. Buttons simply do nothing (no action handlers)."
+}

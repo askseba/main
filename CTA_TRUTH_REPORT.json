@@ -1,0 +1,60 @@
+{
+  "cta_files": [
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:8",
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:18",
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:47",
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:59",
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:66",
+    "src/app/perfume/[id]/page.tsx:7",
+    "src/app/perfume/[id]/page.tsx:77"
+  ],
+  "cta_section_class": "src/app/perfume/[id]/PerfumeDetailCTA.tsx:47",
+  "price_comparison_text": [
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:59",
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:66"
+  ],
+  "dollarsign_icon": [
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:3",
+    "src/app/perfume/[id]/PerfumeDetailCTA.tsx:65",
+    "src/app/results/page.tsx:5",
+    "src/app/results/page.tsx:448"
+  ],
+  "perfume_page_has_cta": true,
+  "perfume_page_cta_line": 77,
+  "perfume_page_import_line": 7,
+  "dom_search_results": "NOT FOUND in accessibility tree",
+  "browser_visible_elements": [
+    "SpeedometerGauge (توافق 92%)",
+    "PerfumeTimeline (3 stages)",
+    "Button: شراء العطر الآن",
+    "Button: طلب عينة بحجم 25 مل",
+    "Button: حفظ العطر في قائمة المفضلة",
+    "Button: شارك النتيجة"
+  ],
+  "missing_in_dom": [
+    "cta-section class",
+    "قارن الأسعار button",
+    "PerfumeDetailCTA component"
+  ],
+  "confession": "PerfumeDetailCTA IS imported and used in perfume/[id]/page.tsx (line 77), but it is NOT rendering in the browser DOM. Either the component is failing silently, or there's a build/render issue preventing it from appearing in the accessibility tree.",
+  "code_evidence": {
+    "import_exists": true,
+    "import_line": 7,
+    "usage_exists": true,
+    "usage_line": 77,
+    "component_definition_exists": true,
+    "component_file": "src/app/perfume/[id]/PerfumeDetailCTA.tsx"
+  },
+  "dom_evidence": {
+    "cta_section_found": false,
+    "price_button_found": false,
+    "perfume_detail_cta_rendered": false,
+    "visible_cta_buttons": [
+      "شراء العطر الآن",
+      "طلب عينة بحجم 25 مل",
+      "حفظ العطر في قائمة المفضلة",
+      "شارك النتيجة"
+    ]
+  },
+  "conclusion": "CODE SAYS YES, DOM SAYS NO - Component exists in code but not rendering in browser"
+}
