@@ -1,7 +1,8 @@
 "use client"
-import React, { useState } from 'react'
+import React from 'react'
 import { X } from 'lucide-react'
 import { CTAButton } from './CTAButton'
+import { type ResultsFilters } from '@/hooks/useResultsFilters'
 
 interface FilterFamily {
   name: string
@@ -12,23 +13,16 @@ interface FilterFamily {
 interface MobileFilterModalProps {
   isOpen: boolean
   onClose: () => void
-  onApply?: (filters: {
-    matchPercentage: number
-    safeOnly: boolean
-    families: string[]
-    priceRange: [number, number]
-  }) => void
+  filters: ResultsFilters
+  onFiltersChange: (filters: ResultsFilters) => void
 }
 
 export function MobileFilterModal({ 
   isOpen, 
-  onClose, 
-  onApply
+  onClose,
+  filters,
+  onFiltersChange
 }: MobileFilterModalProps) {
-  const [matchPercentage, setMatchPercentage] = useState(85)
-  const [safeOnly, setSafeOnly] = useState(false)
-  const [priceRange, setPriceRange] = useState<[number, number]>([100, 5000])
-  const [selectedFamilies, setSelectedFamilies] = useState<string[]>(['عود'])
 
   const families: FilterFamily[] = [
     {
@@ -57,24 +51,6 @@ export function MobileFilterModal({
     }
   ]
 
-  const handleFamilyToggle = (familyName: string, childName?: string) => {
-    const key = childName ? `${familyName}-${childName}` : familyName
-    setSelectedFamilies(prev => 
-      prev.includes(key) 
-        ? prev.filter(f => f !== key)
-        : [...prev, key]
-    )
-  }
-
-  const handleApply = () => {
-    onApply?.({
-      matchPercentage,
-      safeOnly,
-      families: selectedFamilies,
-      priceRange
-    })
-    onClose()
-  }
 
   if (!isOpen) return null
 
@@ -106,26 +82,15 @@ export function MobileFilterModal({
           <div>
             <label className="block text-brown-text font-tajawal-bold mb-3 flex justify-between">
               <span>نسبة التوافق</span>
-              <span className="text-primary">{matchPercentage}% +</span>
+              <span className="text-primary">{filters.matchPercentage}% +</span>
             </label>
             <input
               type="range"
-              min="50"
+              min="0"
               max="100"
-              value={matchPercentage}
-              onChange={(e) => setMatchPercentage(Number(e.target.value))}
+              value={filters.matchPercentage}
+              onChange={(e) => onFiltersChange({...filters, matchPercentage: Number(e.target.value)})}
               className="w-full h-2 bg-primary/10 rounded-lg appearance-none cursor-pointer accent-primary"
-            />
-          </div>
-
-          {/* Safe Only Checkbox */}
-          <div className="flex items-center justify-between py-2 border-b border-brown-text/10">
-            <span className="text-brown-text font-medium">آمن للبشرة الحساسة</span>
-            <input
-              type="checkbox"
-              checked={safeOnly}
-              onChange={(e) => setSafeOnly(e.target.checked)}
-              className="w-5 h-5 rounded border-brown-text/20 text-primary focus:ring-primary"
             />
           </div>
 
@@ -137,7 +102,12 @@ export function MobileFilterModal({
                 <div key={idx}>
                   <label 
                     className="flex items-center gap-3 cursor-pointer group"
-                    onClick={() => handleFamilyToggle(family.name)}
+                    onClick={() => {
+                      const newFamilies = filters.families.includes(family.name)
+                        ? filters.families.filter(f => f !== family.name)
+                        : [...filters.families, family.name]
+                      onFiltersChange({...filters, families: newFamilies})
+                    }}
                   >
                     <span 
                       className="w-2 h-2 rounded-full"
@@ -151,7 +121,7 @@ export function MobileFilterModal({
                     <div className="pe-6 space-y-2 mt-2">
                       {family.children.map((child, childIdx) => {
                         const key = `${family.name}-${child.name}`
-                        const isChecked = selectedFamilies.includes(key)
+                        const isChecked = filters.families.includes(key)
                         return (
                           <label 
                             key={childIdx}
@@ -160,7 +130,12 @@ export function MobileFilterModal({
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={() => handleFamilyToggle(family.name, child.name)}
+                              onChange={() => {
+                                const newFamilies = filters.families.includes(key)
+                                  ? filters.families.filter(f => f !== key)
+                                  : [...filters.families, key]
+                                onFiltersChange({...filters, families: newFamilies})
+                              }}
                               className="rounded text-primary focus:ring-primary"
                             />
                             <span>{child.name}</span>
@@ -179,19 +154,16 @@ export function MobileFilterModal({
             <h3 className="font-tajawal-bold text-brown-text mb-3">السعر</h3>
             <div className="flex items-center gap-4 mb-4">
               <div className="bg-cream-bg px-3 py-2 rounded-lg border border-brown-text/10 text-center flex-1">
-                {priceRange[0]} ر.س
-              </div>
-              <span className="text-brown-text/50">-</span>
-              <div className="bg-cream-bg px-3 py-2 rounded-lg border border-brown-text/10 text-center flex-1">
-                {priceRange[1]} ر.س
+                {filters.maxPrice} ر.س
               </div>
             </div>
             <input
               type="range"
               min="100"
               max="5000"
-              value={priceRange[1]}
-              onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+              step="100"
+              value={filters.maxPrice}
+              onChange={(e) => onFiltersChange({...filters, maxPrice: Number(e.target.value)})}
               className="w-full h-2 bg-primary/10 rounded-lg appearance-none cursor-pointer accent-primary"
             />
           </div>
@@ -200,11 +172,11 @@ export function MobileFilterModal({
         {/* Footer */}
         <div className="p-6 border-t border-brown-text/10 bg-cream-bg sticky bottom-0">
           <CTAButton
-            variant="primary"
-            onClick={handleApply}
+            variant="secondary"
+            onClick={onClose}
             className="w-full"
           >
-            عرض {selectedFamilies.length * 8} نتيجة
+            إغلاق
           </CTAButton>
         </div>
       </div>

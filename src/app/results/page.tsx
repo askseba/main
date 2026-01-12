@@ -12,13 +12,7 @@ import { formatPerfumeResultsTitle } from '@/lib/utils/arabicPlural'
 import { type ScoredPerfume } from '@/lib/matching'
 import { toast } from 'sonner'
 import Link from 'next/link'
-
-interface FilterState {
-  minMatch: number
-  maxPrice: number
-  family: string
-  safeOnly: boolean
-}
+import { useResultsFilters } from '@/hooks/useResultsFilters'
 
 interface MatchAPIResponse {
   success: boolean
@@ -42,12 +36,7 @@ export default function ResultsPage() {
   
   // UI State
   const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<FilterState>({
-    minMatch: 0,
-    maxPrice: 5000,
-    family: 'all',
-    safeOnly: false,
-  })
+  const { filters, setFilters } = useResultsFilters()
   const [sortBy, setSortBy] = useState<'match' | 'price-low' | 'price-high' | 'rating'>('match')
   const [currentPage, setCurrentPage] = useState(1)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -114,8 +103,8 @@ export default function ResultsPage() {
     }
 
     // Match percentage filter
-    if (filters.minMatch > 0) {
-      result = result.filter(perfume => perfume.finalScore >= filters.minMatch)
+    if (filters.matchPercentage > 0) {
+      result = result.filter(perfume => perfume.finalScore >= filters.matchPercentage)
     }
 
     // Price filter
@@ -125,9 +114,33 @@ export default function ResultsPage() {
       )
     }
 
-    // Safe only filter
-    if (filters.safeOnly) {
-      result = result.filter(perfume => perfume.safetyScore === 100)
+    // Families filter
+    if (filters.families.length > 0) {
+      result = result.filter(perfume => {
+        const perfumeFamiliesLower = (perfume.families || []).map(f => f.toLowerCase())
+        
+        return filters.families.some(selectedFamily => {
+          const selectedLower = selectedFamily.toLowerCase()
+          
+          // Handle child keys like "الأخشاب-عود" - extract child name
+          const childName = selectedLower.includes('-') 
+            ? selectedLower.split('-').slice(1).join('-') 
+            : null
+          
+          // Check if perfume families match parent family or child name
+          return perfumeFamiliesLower.some(perfumeFamily => {
+            // Match parent family name
+            if (perfumeFamily.includes(selectedLower) || selectedLower.includes(perfumeFamily)) {
+              return true
+            }
+            // Match child name if it's a child selection
+            if (childName && (perfumeFamily.includes(childName) || childName.includes(perfumeFamily))) {
+              return true
+            }
+            return false
+          })
+        })
+      })
     }
 
     // Sort
@@ -155,20 +168,6 @@ export default function ResultsPage() {
     currentPage * itemsPerPage
   )
 
-  const handleFilterApply = (filterData: {
-    matchPercentage: number
-    safeOnly: boolean
-    families: string[]
-    priceRange: [number, number]
-  }) => {
-    setFilters({
-      minMatch: filterData.matchPercentage,
-      maxPrice: filterData.priceRange[1],
-      family: 'all',
-      safeOnly: filterData.safeOnly,
-    })
-    setCurrentPage(1)
-  }
 
   // Loading state
   if (isLoading) {
@@ -319,26 +318,15 @@ export default function ResultsPage() {
               <div className="mb-6">
                 <label className="block text-brown-text font-medium mb-3 flex justify-between">
                   <span>نسبة التوافق</span>
-                  <span className="text-primary">{filters.minMatch}% +</span>
+                  <span className="text-primary">{filters.matchPercentage}% +</span>
                 </label>
                 <input
                   type="range"
                   min="0"
                   max="100"
-                  value={filters.minMatch}
-                  onChange={(e) => setFilters({ ...filters, minMatch: Number(e.target.value) })}
+                  value={filters.matchPercentage}
+                  onChange={(e) => setFilters({ ...filters, matchPercentage: Number(e.target.value) })}
                   className="w-full h-2 bg-primary/10 rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-              </div>
-
-              {/* Safe Only */}
-              <div className="mb-6 flex items-center justify-between py-2 border-b border-brown-text/10">
-                <span className="text-brown-text font-medium">آمن للبشرة الحساسة</span>
-                <input
-                  type="checkbox"
-                  checked={filters.safeOnly}
-                  onChange={(e) => setFilters({ ...filters, safeOnly: e.target.checked })}
-                  className="w-5 h-5 rounded border-brown-text/20 text-primary focus:ring-primary"
                 />
               </div>
 
@@ -361,6 +349,29 @@ export default function ResultsPage() {
                 />
               </div>
 
+              {/* Families Filter */}
+              <div className="mb-6">
+                <h3 className="font-tajawal-bold text-brown-text mb-3">العائلة العطرية</h3>
+                <div className="space-y-2">
+                  {['الأخشاب', 'الشرقية', 'الزهرية'].map((family) => (
+                    <label key={family} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filters.families.includes(family)}
+                        onChange={(e) => {
+                          const newFamilies = e.target.checked
+                            ? [...filters.families, family]
+                            : filters.families.filter(f => f !== family)
+                          setFilters({...filters, families: newFamilies})
+                        }}
+                        className="rounded text-primary focus:ring-primary"
+                      />
+                      <span className="text-brown-text">{family}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               {/* Score Breakdown Legend */}
               <div className="mb-6 p-4 bg-cream-bg rounded-xl">
                 <h3 className="font-tajawal-bold text-brown-text mb-3 text-sm">كيف يُحسب التوافق؟</h3>
@@ -375,14 +386,6 @@ export default function ResultsPage() {
                   </div>
                 </div>
               </div>
-
-              <CTAButton
-                variant="primary"
-                onClick={() => setCurrentPage(1)}
-                className="w-full"
-              >
-                تطبيق الفلاتر
-              </CTAButton>
             </div>
           </div>
 
@@ -390,10 +393,8 @@ export default function ResultsPage() {
           <MobileFilterModal 
             isOpen={isFilterOpen}
             onClose={() => setIsFilterOpen(false)}
-            onApply={(filterData) => {
-              handleFilterApply(filterData)
-              setIsFilterOpen(false)
-            }}
+            filters={filters}
+            onFiltersChange={setFilters}
           />
 
           {/* Results Grid */}
@@ -418,7 +419,7 @@ export default function ResultsPage() {
                   variant="primary"
                   onClick={() => {
                     setSearchQuery('')
-                    setFilters({ minMatch: 0, maxPrice: 5000, family: 'all', safeOnly: false })
+                    setFilters({ matchPercentage: 0, maxPrice: 5000, families: [] })
                     setCurrentPage(1)
                   }}
                 >
