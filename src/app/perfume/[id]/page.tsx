@@ -17,7 +17,7 @@ export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
   const perfume = normalizePerfume(perfumeData)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-bg/50 to-cream-bg/90 py-12 px-6" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-b from-cream-bg/50 to-cream-bg/90 py-12 px-6 pb-32" dir="rtl">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           
@@ -40,7 +40,7 @@ export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
           </div>
 
           {/* Right: Speedometer + Timeline */}
-          <div className="space-y-8">
+          <div className="space-y-10">
             <Suspense fallback={<LoadingSpinner size="sm" />}>
               <SpeedometerGauge 
                 score={perfume.score ?? 85} 

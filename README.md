@@ -36,12 +36,37 @@ npm run dev
 - **[RTL Support](./docs/RTL.md)** - دعم اللغة العربية واتجاه RTL
 - **[PWA Features](./docs/PWA.md)** - ميزات التطبيق التقدمي
 
+## 🛡️ Authentication
+
+### Demo Login
+- **Email:** demo@askseba.com
+- **Password:** 123456
+- → Redirects to `/dashboard`
+
+### Production Setup
+1. **Google OAuth:** Get credentials from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. **.env.local:** Add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+3. **Database Integration:** Prisma integration (Phase 2)
+
+### Protected Routes
+- `/dashboard/**` - Protected by middleware + client-side checks
+- Unauthenticated users are redirected to `/login`
+
+### Testing Authentication
+```bash
+# Test auth configuration
+npm run test:auth
+
+# Run dev server with auth URL
+npm run dev:auth
+```
+
 ## 🛠️ التقنيات المستخدمة
 
-- **Next.js 14** - إطار عمل React
+- **Next.js 16** - إطار عمل React
 - **TypeScript** - لغة البرمجة
 - **Tailwind CSS** - تصميم الواجهة
-- **NextAuth.js** - المصادقة
+- **NextAuth.js v5** - المصادقة
 - **Noto Sans Arabic** - خط عربي محسّن
 
 ## 📝 ملاحظات

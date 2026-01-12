@@ -1,13 +1,17 @@
 "use client"
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, ChevronLeft, ChevronRight, Sparkles, DollarSign } from 'lucide-react'
+import { Search, Filter, ChevronLeft, ChevronRight, Sparkles, DollarSign, Heart } from 'lucide-react'
 import { PerfumeCard } from '@/components/ui/PerfumeCard'
 import { MobileFilterModal } from '@/components/ui/MobileFilterModal'
 import { CTAButton } from '@/components/ui/CTAButton'
+import { ShareButton } from '@/components/ui/ShareButton'
 import { useQuiz } from '@/contexts/QuizContext'
+import { useSession } from 'next-auth/react'
 import { formatPerfumeResultsTitle } from '@/lib/utils/arabicPlural'
 import { type ScoredPerfume } from '@/lib/matching'
+import { toast } from 'sonner'
+import Link from 'next/link'
 
 interface FilterState {
   minMatch: number
@@ -26,6 +30,7 @@ interface MatchAPIResponse {
 
 export default function ResultsPage() {
   const { data: quizData } = useQuiz()
+  const { data: session } = useSession()
   
   // State for API data
   const [scoredPerfumes, setScoredPerfumes] = useState<ScoredPerfume[]>([])
@@ -33,6 +38,7 @@ export default function ResultsPage() {
   const [hasPreferences, setHasPreferences] = useState(false)
   const [userScentDNA, setUserScentDNA] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   
   // UI State
   const [searchQuery, setSearchQuery] = useState('')
@@ -231,6 +237,32 @@ export default function ResultsPage() {
               </span>
             </div>
           )}
+
+          {/* Enhanced conditional UX: Guest CTA */}
+          {!session && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 bg-gradient-to-r from-rose-500/10 to-pink-500/10 border border-rose-200/50 backdrop-blur-sm rounded-2xl p-6 text-center mb-8"
+            >
+              <div className="flex flex-col items-center gap-4">
+                <Heart className="w-12 h-12 text-rose-400" />
+                <div>
+                  <h3 className="text-xl font-bold text-rose-800 mb-2">
+                    سجّل لحفظ اقتراحاتك ♥️
+                  </h3>
+                  <p className="text-rose-600 mb-4">
+                    احفظ مفضلاتك واحصل على توصيات شخصية
+                  </p>
+                </div>
+                <Link href={`/login?callbackUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '/results')}`}>
+                  <CTAButton variant="primary" size="sm" className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600">
+                    ابدأ الآن مجاناً
+                  </CTAButton>
+                </Link>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Controls */}
@@ -416,6 +448,81 @@ export default function ResultsPage() {
                         isSafe={perfume.safetyScore === 100}
                       />
                       
+                      {/* Enhanced conditional UX: Action Buttons - Authenticated Users Only */}
+                      {session && (
+                        <motion.div 
+                          className="absolute top-4 left-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileHover={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {/* Favorite Button */}
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation()
+                              const isFavorite = favoriteIds.has(perfume.id)
+                              const action = isFavorite ? 'remove' : 'add'
+                              
+                              try {
+                                const response = await fetch('/api/results/favorites', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ perfumeId: perfume.id, action })
+                                })
+                                
+                                const data = await response.json()
+                                
+                                if (data.success) {
+                                  setFavoriteIds(prev => {
+                                    const newSet = new Set(prev)
+                                    if (action === 'add') {
+                                      newSet.add(perfume.id)
+                                      // Enhanced conditional UX: Arabic RTL toast
+                                      toast.success('تم الحفظ في المفضلة ♥️', {
+                                        style: { direction: 'rtl', textAlign: 'right' }
+                                      })
+                                    } else {
+                                      newSet.delete(perfume.id)
+                                      toast.success('تم الحذف من المفضلة', {
+                                        style: { direction: 'rtl', textAlign: 'right' }
+                                      })
+                                    }
+                                    return newSet
+                                  })
+                                } else {
+                                  toast.error(data.error || 'حدث خطأ', {
+                                    style: { direction: 'rtl', textAlign: 'right' }
+                                  })
+                                }
+                              } catch (err) {
+                                console.error('Error saving favorite:', err)
+                                toast.error('حدث خطأ أثناء الحفظ', {
+                                  style: { direction: 'rtl', textAlign: 'right' }
+                                })
+                              }
+                            }}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95 ${
+                              favoriteIds.has(perfume.id)
+                                ? 'bg-red-500 text-white'
+                                : 'bg-white text-red-500 hover:bg-red-50'
+                            }`}
+                            aria-label={favoriteIds.has(perfume.id) ? `إزالة ${perfume.name} من المفضلة` : `إضافة ${perfume.name} إلى المفضلة`}
+                          >
+                            <Heart className={`w-5 h-5 ${favoriteIds.has(perfume.id) ? 'fill-current' : ''}`} />
+                          </button>
+
+                          {/* Share Button - Enhanced with native share + clipboard */}
+                          <div className="w-10 h-10">
+                            <ShareButton
+                              title={perfume.name}
+                              text={`${perfume.name} من ${perfume.brand} - تطابق ${perfume.finalScore}%`}
+                              url={`${typeof window !== 'undefined' ? window.location.origin : ''}/perfume/${perfume.id}?from=results`}
+                              variant="icon"
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+
                       {/* Price Comparison Button - Results Page Only */}
                       <button
                         onClick={(e) => {

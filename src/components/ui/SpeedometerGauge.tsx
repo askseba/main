@@ -99,9 +99,12 @@ export function SpeedometerGauge({ score, status }: SpeedometerProps) {
       </motion.div>
 
       {/* Center Number + Status */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-20">
+      <div 
+        className="absolute left-1/2 -translate-x-1/2 text-center z-20"
+        style={{ top: '38%', transform: 'translateX(-50%) translateY(-30%)' }}
+      >
         <motion.div 
-          className="text-4xl font-black bg-gradient-to-r from-gray-900 to-black text-transparent bg-clip-text shadow-2xl drop-shadow-lg"
+          className="text-3xl font-black bg-gradient-to-r from-gray-900 to-black text-transparent bg-clip-text shadow-2xl drop-shadow-lg"
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ duration: 1.8 }}
           aria-live="polite"

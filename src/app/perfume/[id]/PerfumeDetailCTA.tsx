@@ -44,22 +44,23 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
     <div className="space-y-6">
       {/* CTA Section - Fixed positioning */}
       <div 
-        className="cta-section fixed bottom-4 left-1/2 -translate-x-1/2 z-50 mt-8 p-4 bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200 mx-auto max-w-4xl w-[calc(100%-2rem)]"
+        className="cta-section fixed bottom-6 left-1/2 -translate-x-1/2 z-50 p-4 bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200 mx-auto max-w-4xl w-[calc(100%-2rem)]"
+        dir="rtl"
         ref={dropdownRef}
       >
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
           {/* Share Button */}
           <ShareButton 
             title={`${perfume.name} - ${perfume.brand}`}
             text={`صبا اختارت لي ${perfume.name} بنسبة ${perfume.score ?? 85}% 🎯 ✅ آمن تماماً`}
             variant="secondary"
-            className="flex-1"
+            className="flex-1 h-12"
           />
           
           {/* قارن الأسعار Button - Prominent */}
-          <div className="relative flex-[2]">
+          <div className="relative flex-1">
             <Button 
-              className="w-full flex items-center justify-center gap-2 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all font-semibold text-base px-8 py-4 rounded-full"
+              className="w-full flex items-center justify-center gap-2 h-12 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all font-semibold text-base px-6 py-3 rounded-full"
               onClick={() => setShowStores(!showStores)}
             >
               <DollarSign className="w-5 h-5" />

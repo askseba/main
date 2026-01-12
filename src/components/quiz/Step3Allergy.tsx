@@ -1,4 +1,5 @@
 // src/components/Step3Allergy.tsx
+// FIX: Unified allergy red (#ef4444) for all levels (Level 1-3)
 'use client'
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -126,7 +127,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                   p-6 rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2
                   transition-all duration-300 min-h-[120px] text-right
                   ${allergy.level1.includes(id)
-                    ? 'bg-gauge-warning/20 border-4 border-gauge-warning shadow-2xl ring-2 ring-yellow-200'
+                    ? 'bg-red-50 border-4 border-[#ef4444] shadow-2xl ring-2 ring-red-200'
                     : 'bg-white border-2 border-cream/50 hover:border-text-dark/30 hover:bg-cream/50'
                   }
                 `}
@@ -167,7 +168,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                   p-8 rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2
                   aspect-square flex flex-col items-center justify-center
                   ${allergy.level2.includes(id)
-                    ? 'bg-gauge-warning/20 border-4 border-gauge-warning'
+                    ? 'bg-red-50 border-4 border-[#ef4444]'
                     : 'bg-white border-2 border-cream/50 hover:border-text-dark/30'
                   }
                 `}
@@ -211,7 +212,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                   px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all
                   flex items-center gap-2 font-medium
                   ${allergy.level3.includes(id)
-                    ? 'bg-gauge-danger/20 border-2 border-gauge-danger text-gauge-danger'
+                    ? 'bg-red-50 border-2 border-[#ef4444] text-[#ef4444]'
                     : 'bg-white border-2 border-cream/50 text-text-dark hover:border-text-dark/30'
                   }
                 `}

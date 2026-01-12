@@ -1,78 +1,49 @@
-// Service Worker for Ask Seba PWA
-// Basic offline support and caching
+// Service Worker for Ask Seba PWA - FIXED v2 (FORCE UPDATE)
+const CACHE_NAME = 'ask-seba-v3'; // NEW VERSION
+const urlsToCache = ['/', '/manifest.json', '/pwa-192.png', '/pwa-512.png'];
 
-const CACHE_NAME = 'ask-seba-v1';
-const urlsToCache = [
-  '/',
-  '/dashboard',
-  '/manifest.json',
-  '/pwa-192.png',
-  '/pwa-512.png',
-];
-
-// Install event - cache resources
+// Install
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
-  self.skipWaiting();
+  self.skipWaiting(); // FORCE IMMEDIATE ACTIVATION
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
 });
 
-// Activate event - clean up old caches
+// Activate - AGGRESSIVE CLEANUP
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then(cacheNames => 
+      Promise.all(cacheNames.map(name => name !== CACHE_NAME && caches.delete(name)))
+    )
   );
-  event.waitUntil(self.clients.claim());
+  self.clients.claim(); // TAKE CONTROL IMMEDIATELY
 });
 
-// Fetch event - cache-first strategy
+// CRITICAL FETCH GUARDS FIRST
 self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // 🔥 GUARD 1: Skip chrome-extension & non-http
+  if (!/^https?:$/.test(url.protocol)) return event.respondWith(fetch(req));
+  
+  // 🔥 GUARD 2: Skip ALL non-GET (POST/PUT/DELETE incl auth)
+  if (req.method !== 'GET') return event.respondWith(fetch(req));
+  
+  // 🔥 GUARD 3: Skip ALL API + Next.js dev/private
+  if (url.pathname.match(/^\/(api|_\w+|__nextjs)/)) return event.respondWith(fetch(req));
+  
+  // 🔥 GUARD 4: Skip cross-origin
+  if (url.origin !== self.location.origin) return event.respondWith(fetch(req));
+
+  // SAFE CACHE STRATEGY (only after ALL guards pass)
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
+    caches.match(req).then(cached => 
+      cached || fetch(req).then(resp => {
+        if (resp.ok && resp.type === 'basic') {
+          caches.open(CACHE_NAME).then(cache => cache.put(req, resp.clone()));
         }
-        // Clone the request
-        const fetchRequest = event.request.clone();
-        
-        return fetch(fetchRequest).then((response) => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-          
-          // Clone the response
-          const responseToCache = response.clone();
-          
-          caches.open(CACHE_NAME)
-            .then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          
-          return response;
-        });
-      })
-      .catch(() => {
-        // Offline fallback
-        if (event.request.destination === 'document') {
-          return caches.match('/');
-        }
-      })
+        return resp;
+      }).catch(() => caches.match('/'))
+    )
   );
 });

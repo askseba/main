@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     default: "Ask Seba - عطرك المثالي",
     template: "%s | Ask Seba",
   },
+  // FIX: Brand consistency - Always "Ask Seba"
   description: "اكتشف عطرك المثالي في 3 دقائق",
   manifest: "/manifest.json",
   icons: {
@@ -94,7 +95,11 @@ export default function RootLayout({
               position="top-center" 
               richColors={false}
               toastOptions={{
-                duration: 3500
+                duration: 3500,
+                style: {
+                  direction: 'rtl',
+                  textAlign: 'right'
+                }
               }}
             />
             <PWARegister />

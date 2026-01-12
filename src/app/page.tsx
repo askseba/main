@@ -34,8 +34,9 @@ export default function Home() {
           >
             {/* Logo */}
             <motion.div variants={itemVariants} className="mb-8 md:mb-12">
+              {/* FIX: Brand consistency - Always "Ask Seba" */}
               <h1 className="font-serif italic text-5xl md:text-[72px] font-black text-brown-text leading-none tracking-tight">
-                ask.seba
+                Ask Seba
               </h1>
             </motion.div>
 
@@ -57,13 +58,14 @@ export default function Home() {
 
             {/* CTA */}
             <motion.div variants={itemVariants} className="mb-12">
+              {/* FIX: Brand consistency - CTA "ابدأ الاختبار" (no "مجاني") */}
               <CTAButton 
                 variant="primary" 
                 size="lg" 
                 href="/quiz"
                 className="text-base md:text-lg px-12 md:px-16 py-6 mx-auto shadow-button"
               >
-                ابدأ الاختبار المجاني
+                ابدأ الاختبار
               </CTAButton>
             </motion.div>
 
