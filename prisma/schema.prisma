@@ -95,3 +95,16 @@ model UserPreference {
 
   @@map("user_preferences")
 }
+
+// ============================================
+// USER FAVORITES MODEL
+// ============================================
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  perfumeId String  @map("perfume_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@unique([userId, perfumeId], name: "userId_perfumeId")
+  @@map("user_favorites")
+}

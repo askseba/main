@@ -1,6 +1,6 @@
 'use client'
 import Image from 'next/image'
-import { Suspense, useState, useMemo } from 'react'
+import { Suspense, useState, useMemo, useEffect } from 'react'
 import { StatsGrid, PerfumeGrid, FilterTabs } from '@/components/ui'
 import { RadarChart } from '@/components/ui/RadarChart'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
@@ -9,10 +9,11 @@ import { useRouter } from 'next/navigation'
 import { useQuiz } from '@/contexts/QuizContext'
 import { calculateScentProfile } from '@/lib/scent-analysis'
 import { 
-  getFavoritesPerfumes, 
+  perfumes,
   getDislikedPerfumes, 
   getWishlistPerfumes,
-  defaultUserStats
+  defaultUserStats,
+  type Perfume
 } from '@/lib/data/perfumes'
 
 export default function Dashboard() {
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('favorites')
   const { data: quizData } = useQuiz()
+  const [favorites, setFavorites] = useState<Perfume[]>([])
 
   // Calculate dynamic radar data from user's liked perfumes
   const dynamicRadarData = useMemo(() => {
@@ -28,6 +30,26 @@ export default function Dashboard() {
   }, [quizData.step1_liked])
 
   const hasQuizData = quizData.step1_liked && quizData.step1_liked.length > 0
+
+  // Load favorites from DB
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetch('/api/user/favorites')
+        .then(res => res.json())
+        .then((ids: string[]) => {
+          const favPerfumes = perfumes.filter(p => ids.includes(p.id))
+          setFavorites(favPerfumes)
+        })
+        .catch(err => {
+          console.error('Error loading favorites:', err)
+        })
+    } else {
+      // Guest: load from localStorage
+      const guestFavs = JSON.parse(localStorage.getItem('guestFavorites') || '[]')
+      const favPerfumes = perfumes.filter(p => guestFavs.includes(p.id))
+      setFavorites(favPerfumes)
+    }
+  }, [session?.user?.id])
 
   // Redirect to login if not authenticated
   if (status === 'unauthenticated') {
@@ -48,12 +70,11 @@ export default function Dashboard() {
     )
   }
 
-  const favoritesPerfumes = getFavoritesPerfumes()
   const dislikedPerfumes = getDislikedPerfumes()
   const wishlistPerfumes = getWishlistPerfumes()
 
   const tabs = [
-    { id: 'favorites', label: '💜 المفضلة', icon: 'favorite', count: favoritesPerfumes.length },
+    { id: 'favorites', label: '💜 المفضلة', icon: 'favorite', count: favorites.length },
     { id: 'disliked', label: '❌ المكروهة', icon: 'thumb_down', count: dislikedPerfumes.length },
     { id: 'wishlist', label: '💾 قائمة الرغبات', icon: 'bookmark', count: wishlistPerfumes.length }
   ]
@@ -61,13 +82,13 @@ export default function Dashboard() {
   const getCurrentPerfumes = () => {
     switch (activeTab) {
       case 'favorites':
-        return favoritesPerfumes
+        return favorites
       case 'disliked':
         return dislikedPerfumes
       case 'wishlist':
         return wishlistPerfumes
       default:
-        return favoritesPerfumes
+        return favorites
     }
   }
 

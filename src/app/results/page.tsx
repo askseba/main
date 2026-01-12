@@ -34,6 +34,24 @@ export default function ResultsPage() {
   const [error, setError] = useState<string | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   
+  // Load favorites from DB on mount
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetch('/api/user/favorites')
+        .then(res => res.json())
+        .then((ids: string[]) => {
+          setFavoriteIds(new Set(ids))
+        })
+        .catch(err => {
+          console.error('Error loading favorites:', err)
+        })
+    } else {
+      // Guest: load from localStorage
+      const guestFavs = JSON.parse(localStorage.getItem('guestFavorites') || '[]')
+      setFavoriteIds(new Set(guestFavs))
+    }
+  }, [session?.user?.id])
+  
   // UI State
   const [searchQuery, setSearchQuery] = useState('')
   const { filters, setFilters } = useResultsFilters()
@@ -449,23 +467,52 @@ export default function ResultsPage() {
                         isSafe={perfume.safetyScore === 100}
                       />
                       
-                      {/* Enhanced conditional UX: Action Buttons - Authenticated Users Only */}
-                      {session && (
-                        <motion.div 
-                          className="absolute top-4 left-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          whileHover={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          {/* Favorite Button */}
-                          <button
+                      {/* Favorite and Share Buttons */}
+                      <motion.div 
+                        className="absolute top-4 left-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileHover={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {/* Favorite Button - Available to all users */}
+                        <button
                             onClick={async (e) => {
                               e.stopPropagation()
                               const isFavorite = favoriteIds.has(perfume.id)
                               const action = isFavorite ? 'remove' : 'add'
                               
+                              // Optimistic update
+                              setFavoriteIds(prev => {
+                                const newSet = new Set(prev)
+                                if (action === 'add') {
+                                  newSet.add(perfume.id)
+                                } else {
+                                  newSet.delete(perfume.id)
+                                }
+                                return newSet
+                              })
+                              
                               try {
-                                const response = await fetch('/api/results/favorites', {
+                                if (!session?.user?.id) {
+                                  // Guest: use localStorage
+                                  const guestFavs = JSON.parse(localStorage.getItem('guestFavorites') || '[]')
+                                  let updatedFavs: string[]
+                                  if (action === 'add') {
+                                    updatedFavs = [...new Set([...guestFavs, perfume.id])]
+                                    toast.success('تم الحفظ في المفضلة ♥️', {
+                                      style: { direction: 'rtl', textAlign: 'right' }
+                                    })
+                                  } else {
+                                    updatedFavs = guestFavs.filter((id: string) => id !== perfume.id)
+                                    toast.success('تم الحذف من المفضلة', {
+                                      style: { direction: 'rtl', textAlign: 'right' }
+                                    })
+                                  }
+                                  localStorage.setItem('guestFavorites', JSON.stringify(updatedFavs))
+                                  return
+                                }
+                                
+                                const response = await fetch('/api/user/favorites', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ perfumeId: perfume.id, action })
@@ -474,28 +521,35 @@ export default function ResultsPage() {
                                 const data = await response.json()
                                 
                                 if (data.success) {
+                                  toast.success(action === 'add' ? 'تم الحفظ في المفضلة ♥️' : 'تم الحذف من المفضلة', {
+                                    style: { direction: 'rtl', textAlign: 'right' }
+                                  })
+                                } else {
+                                  // Revert optimistic update on error
                                   setFavoriteIds(prev => {
                                     const newSet = new Set(prev)
                                     if (action === 'add') {
-                                      newSet.add(perfume.id)
-                                      // Enhanced conditional UX: Arabic RTL toast
-                                      toast.success('تم الحفظ في المفضلة ♥️', {
-                                        style: { direction: 'rtl', textAlign: 'right' }
-                                      })
-                                    } else {
                                       newSet.delete(perfume.id)
-                                      toast.success('تم الحذف من المفضلة', {
-                                        style: { direction: 'rtl', textAlign: 'right' }
-                                      })
+                                    } else {
+                                      newSet.add(perfume.id)
                                     }
                                     return newSet
                                   })
-                                } else {
                                   toast.error(data.error || 'حدث خطأ', {
                                     style: { direction: 'rtl', textAlign: 'right' }
                                   })
                                 }
                               } catch (err) {
+                                // Revert optimistic update on error
+                                setFavoriteIds(prev => {
+                                  const newSet = new Set(prev)
+                                  if (action === 'add') {
+                                    newSet.delete(perfume.id)
+                                  } else {
+                                    newSet.add(perfume.id)
+                                  }
+                                  return newSet
+                                })
                                 console.error('Error saving favorite:', err)
                                 toast.error('حدث خطأ أثناء الحفظ', {
                                   style: { direction: 'rtl', textAlign: 'right' }
@@ -512,7 +566,8 @@ export default function ResultsPage() {
                             <Heart className={`w-5 h-5 ${favoriteIds.has(perfume.id) ? 'fill-current' : ''}`} />
                           </button>
 
-                          {/* Share Button - Enhanced with native share + clipboard */}
+                        {/* Share Button - Authenticated users only */}
+                        {session && (
                           <div className="w-10 h-10">
                             <ShareButton
                               title={perfume.name}
@@ -521,8 +576,8 @@ export default function ResultsPage() {
                               variant="icon"
                             />
                           </div>
-                        </motion.div>
-                      )}
+                        )}
+                      </motion.div>
 
                       {/* Price Comparison Button - Results Page Only */}
                       <button
