@@ -14,6 +14,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -166,20 +167,13 @@ export default function ProfilePage() {
         
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-sm border border-brown/10 overflow-hidden">
           {menuItems.map((item, index) => (
-            <a
+            <Link
               key={item.id}
               href={item.href}
               className={cn(
                 "flex items-center justify-between p-5 hover:bg-amber-50/50 transition-all group relative group",
                 index !== menuItems.length - 1 && "border-b border-brown/5"
               )}
-              onClick={(e) => {
-                // Modal fallback إذا الصفحة غير موجودة
-                if (!window.location.pathname.includes(item.href)) {
-                  e.preventDefault();
-                  // افتح modal أو toast "قريباً..."
-                }
-              }}
             >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-brown/5 hover:bg-primary/10 group-hover:bg-primary/20 rounded-2xl transition-all w-12 h-12 flex items-center justify-center">
@@ -194,7 +188,7 @@ export default function ProfilePage() {
               >
                 <ChevronLeft size={20} />
               </motion.div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
