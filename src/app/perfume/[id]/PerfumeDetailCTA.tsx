@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { DollarSign } from 'lucide-react'
+import { DollarSign, Loader2 } from 'lucide-react'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { Button } from '@/components/ui/button'
 import { type Perfume } from '@/lib/data/perfumes'
@@ -9,15 +9,45 @@ interface PerfumeDetailCTAProps {
   perfume: Perfume
 }
 
-const STORES = {
-  noon: (perfume: Perfume) => `https://www.noon.com/saudi-en/search?q=${encodeURIComponent(`${perfume.brand} ${perfume.name}`)}&o=askseba`,
-  namshi: (perfume: Perfume) => `https://www.namshi.com/sa-ar/search?q=${encodeURIComponent(`${perfume.brand} ${perfume.name}`)}`,
-  sixthstreet: (perfume: Perfume) => `https://sa-en.6thstreet.com/search?q=${encodeURIComponent(`${perfume.brand} ${perfume.name}`)}`
+interface PriceData {
+  id: number
+  perfumeId: string
+  storeId: number
+  price: number
+  currency: string
+  updatedAt: string
+  store: {
+    id: number
+    name: string
+    slug: string
+    affiliateUrl: string
+    commission: number
+    isActive: boolean
+  }
 }
 
 export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
   const [showStores, setShowStores] = useState(false)
+  const [prices, setPrices] = useState<PriceData[]>([])
+  const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Fetch prices when dropdown opens
+  useEffect(() => {
+    if (showStores && prices.length === 0 && !loading) {
+      setLoading(true)
+      fetch(`/api/prices/compare?perfumeId=${perfume.id}`)
+        .then(res => res.json())
+        .then(data => {
+          setPrices(data)
+          setLoading(false)
+        })
+        .catch(err => {
+          console.error('Error fetching prices:', err)
+          setLoading(false)
+        })
+    }
+  }, [showStores, perfume.id, prices.length, loading])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -36,9 +66,19 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
     }
   }, [showStores])
 
+  const getStoreUrl = (price: PriceData) => {
+    // If affiliateUrl contains {query}, replace it with search query
+    if (price.store.affiliateUrl.includes('{query}')) {
+      const query = encodeURIComponent(`${perfume.brand} ${perfume.name}`)
+      return price.store.affiliateUrl.replace('{query}', query)
+    }
+    // Otherwise, return the URL as-is (for stores with direct URLs)
+    return price.store.affiliateUrl
+  }
+
+  // Fallback to mock prices if no data
   const basePrice = perfume.price || 299
-  const noonPrice = basePrice
-  const namshiPrice = basePrice > 15 ? basePrice - 15 : basePrice
+  const hasPrices = prices.length > 0
 
   return (
     <div className="space-y-6">
@@ -69,33 +109,35 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
             
             {/* Dropdown */}
             {showStores && (
-              <div className="absolute bottom-full right-0 mb-2 z-50 bg-white shadow-2xl rounded-2xl border-2 border-brown-text/10 p-3 grid grid-cols-2 gap-2 min-w-[280px]" dir="rtl">
-                <a 
-                  href={STORES.noon(perfume)} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="p-3 hover:bg-gray-50 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors border border-gray-100"
-                >
-                  🛒 Noon 
-                  <span className="text-xs opacity-75">SAR {noonPrice}</span>
-                </a>
-                <a 
-                  href={STORES.namshi(perfume)} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="p-3 hover:bg-gray-50 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors border border-gray-100"
-                >
-                  👕 Namshi 
-                  <span className="text-xs opacity-75">SAR {namshiPrice}</span>
-                </a>
-                <a 
-                  href={STORES.sixthstreet(perfume)} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="p-3 hover:bg-gray-50 rounded-xl flex items-center gap-2 text-sm font-semibold col-span-2 border-t border-gray-200 pt-2 mt-2 text-primary hover:text-primary/80 transition-colors"
-                >
-                  🎁 شراء عينة
-                </a>
+              <div className="absolute bottom-full right-0 mb-2 z-50 bg-white shadow-2xl rounded-2xl border-2 border-brown-text/10 p-3 min-w-[280px] max-w-[320px]" dir="rtl">
+                {loading ? (
+                  <div className="p-4 text-center">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
+                    <p className="text-sm text-brown-text/60">جاري تحميل الأسعار...</p>
+                  </div>
+                ) : hasPrices ? (
+                  <div className="space-y-2">
+                    {prices.map((price) => (
+                      <a
+                        key={price.id}
+                        href={getStoreUrl(price)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3 hover:bg-gray-50 rounded-xl flex items-center justify-between text-sm font-medium transition-colors border border-gray-100"
+                      >
+                        <span>{price.store.name}</span>
+                        <span className="text-xs opacity-75 font-semibold text-primary">
+                          {price.price.toFixed(0)} {price.currency}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-sm text-brown-text/60 mb-2">لا توجد أسعار متاحة حالياً</p>
+                    <p className="text-xs text-brown-text/40">سيتم تحديث الأسعار قريباً</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

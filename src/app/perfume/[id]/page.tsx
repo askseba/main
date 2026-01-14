@@ -40,7 +40,7 @@ export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
           </div>
 
           {/* Right: Speedometer + Timeline */}
-          <div className="space-y-10">
+          <div className="flex flex-col items-center space-y-10">
             <Suspense fallback={<LoadingSpinner size="sm" />}>
               <SpeedometerGauge 
                 score={perfume.score ?? 85} 

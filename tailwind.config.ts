@@ -20,6 +20,8 @@ const config: Config = {
         'warning-orange': '#F59E0B',
         'danger-red': '#EF4444',
         'gauge-safe': '#15803d',
+        'gauge-warning': '#F59E0B',
+        'gauge-danger': '#EF4444',
         'pink-light': '#EEDDD8',
         'brown-medium': '#A88B78',
         'gray-brown': '#AFA393',

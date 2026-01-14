@@ -320,14 +320,93 @@ const perfumesData = [
   }
 ]
 
+// Store data - 7 متاجر سعودية
+const storesData = [
+  {
+    name: 'FACES وجوه',
+    slug: 'faces',
+    affiliateUrl: 'https://www.faces.sa/?utm_source=askseba',
+    commission: 8.0,
+    isActive: true
+  },
+  {
+    name: 'Nice One نايس ون',
+    slug: 'niceone',
+    affiliateUrl: 'https://niceonesa.com/?utm_source=askseba',
+    commission: 10.0,
+    isActive: true
+  },
+  {
+    name: 'Golden Scent قولدن سنت',
+    slug: 'goldenscent',
+    affiliateUrl: 'https://www.goldenscent.com/?utm_source=askseba',
+    commission: 12.0,
+    isActive: true
+  },
+  {
+    name: 'السلطان للعطور',
+    slug: 'sultan',
+    affiliateUrl: 'https://sultanperfumes.net/?utm_source=askseba',
+    commission: 7.0,
+    isActive: true
+  },
+  {
+    name: 'لوجا ستور',
+    slug: 'lojastore',
+    affiliateUrl: 'https://lojastoregt.com/?utm_source=askseba',
+    commission: 9.0,
+    isActive: true
+  },
+  {
+    name: 'فانيلا للعطور',
+    slug: 'vanilla',
+    affiliateUrl: 'https://vanilla.sa/?utm_source=askseba',
+    commission: 8.5,
+    isActive: true
+  },
+  {
+    name: 'أوناس السعودية',
+    slug: 'ounass-sa',
+    affiliateUrl: 'https://saudi.ounass.com/?utm_source=askseba',
+    commission: 15.0,
+    isActive: true
+  }
+]
+
 async function main() {
   console.log('🌱 Starting seed...')
   
   // Clear existing data
+  await prisma.price.deleteMany()
+  // Delete old stores or set isActive=false
+  await prisma.store.updateMany({
+    where: { isActive: true },
+    data: { isActive: false }
+  })
+  console.log('🗑️  Deactivated old stores')
+  
+  // Clear perfumes (optional - comment out if you want to keep existing perfumes)
   await prisma.perfume.deleteMany()
   console.log('🗑️  Cleared existing perfumes')
   
+  // Seed stores (upsert to avoid duplicates)
+  console.log('\n🏪 Seeding stores...')
+  for (const store of storesData) {
+    await prisma.store.upsert({
+      where: { slug: store.slug },
+      update: {
+        name: store.name,
+        affiliateUrl: store.affiliateUrl,
+        commission: store.commission,
+        isActive: store.isActive
+      },
+      create: store
+    })
+    console.log(`✅ Created/Updated store: ${store.name}`)
+  }
+  
   // Seed perfumes
+  console.log('\n🌸 Seeding perfumes...')
   for (const perfume of perfumesData) {
     const pyramid = scentPyramids[perfume.id] || { top: [], heart: [], base: [] }
     
@@ -352,7 +431,7 @@ async function main() {
     console.log(`✅ Created: ${perfume.name}`)
   }
   
-  console.log(`\n🎉 Seeded ${perfumesData.length} perfumes successfully!`)
+  console.log(`\n🎉 Seeded ${storesData.length} stores and ${perfumesData.length} perfumes successfully!`)
 }
 
 main()
