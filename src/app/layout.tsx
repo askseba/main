@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { PWARegister } from "@/components/PWARegister";
 import { SessionProvider } from "@/components/SessionProvider";
 import { QuizProvider } from "@/contexts/QuizContext";
+import { ConditionalLayout } from "@/components/ConditionalLayout";
 
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
@@ -90,7 +91,9 @@ export default function RootLayout({
       >
         <SessionProvider>
           <QuizProvider>
-            {children}
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
             <Toaster 
               position="top-center" 
               richColors={false}

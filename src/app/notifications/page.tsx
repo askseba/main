@@ -30,7 +30,13 @@ export default function NotificationsPage() {
   }
 
   // Mock notifications data (يمكن استبدالها بـ API call)
-  const notifications = [];
+  interface Notification {
+    type: 'success' | 'info' | 'pending';
+    title: string;
+    message: string;
+    date: string;
+  }
+  const notifications: Notification[] = [];
 
   return (
     <div className="min-h-screen bg-cream-bg/50" dir="rtl">

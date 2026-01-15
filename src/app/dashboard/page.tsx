@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useQuiz } from '@/contexts/QuizContext'
 import { calculateScentProfile } from '@/lib/scent-analysis'
+import { migrateGuestFavorites } from '@/lib/migrate-favorites'
 import { 
   perfumes,
   getDislikedPerfumes, 
@@ -34,6 +35,11 @@ export default function Dashboard() {
   // Load favorites from DB
   useEffect(() => {
     if (session?.user?.id) {
+      // 1. Migrate guest favorites first
+      migrateGuestFavorites(session.user.id)
+        .catch(console.error)
+      
+      // 2. Then fetch from API
       fetch('/api/user/favorites')
         .then(res => res.json())
         .then((ids: string[]) => {
