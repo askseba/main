@@ -14,10 +14,11 @@ model Suggestion {
   category     String   @default("general")
   status       String   @default("pending")
   publicStatus String?  @default("planned")
-  userId       String
+  userId       String   @map("user_id")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
   votes        Vote[]
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("suggestions")
 }
@@ -70,11 +71,32 @@ model UserPreference {
   @@map("user_preferences")
 }
 
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String   // Hashed password
+  name          String?
+  image         String?
+  bio           String?
+  role          String   @default("user")
+  statsVerified Boolean  @default(false) @map("stats_verified")
+  emailVerified DateTime? @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  favorites   UserFavorite[]
+  suggestions Suggestion[]
+
+  @@map("users")
+}
+
 model UserFavorite {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   perfumeId String   @map("perfume_id")
   createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, perfumeId], name: "userId_perfumeId")
   @@map("user_favorites")

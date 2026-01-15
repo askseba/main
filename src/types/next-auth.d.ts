@@ -15,7 +15,18 @@ declare module 'next-auth' {
       image?: string | null
       bio?: string
       role?: string
+      statsVerified?: boolean  // ✅ Added for dashboard badge
     }
+  }
+  
+  interface User {
+    id: string
+    name?: string | null
+    email?: string | null
+    image?: string | null
+    bio?: string
+    role?: string
+    statsVerified?: boolean
   }
 }
 
@@ -25,5 +36,6 @@ declare module 'next-auth/jwt' {
     bio?: string
     image?: string
     role?: string
+    statsVerified?: boolean
   }
 }

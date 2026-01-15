@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useQuiz } from '@/contexts/QuizContext'
-import { getStorageJSON, setStorageJSON } from '@/lib/utils/storage'
+import { getStorageJSON, setStorageJSON, removeStorageItem } from '@/lib/utils/storage'
 import { safeFetch, validateArray } from '@/lib/utils/api-helpers'
 import { toast } from 'sonner'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
@@ -12,11 +12,12 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 const FAVORITES_CHANNEL_NAME = 'favorites-sync'
 
 interface FavoritesMessage {
-  type: 'favorites-updated'
+  type: 'favorites-updated' | 'favorites-cleared'
   userId?: string
-  favorites: string[]
-  action?: 'add' | 'remove'
+  favorites?: string[]
+  action?: 'add' | 'remove' | 'migration-complete'
   perfumeId?: string
+  timestamp?: number
 }
 
 /**
@@ -52,7 +53,17 @@ export function useFavorites() {
       const handleMessage = (event: MessageEvent<FavoritesMessage>) => {
         const message = event.data
         
-        // Validate message structure
+        // Handle favorites-cleared message (migration complete)
+        if (message && message.type === 'favorites-cleared') {
+          // Clear guest favorites in all tabs (only for unauthenticated users)
+          if (status === 'unauthenticated') {
+            removeStorageItem('guestFavorites')
+            setStep('step1_liked', [])
+          }
+          return
+        }
+        
+        // Validate message structure for favorites-updated
         if (!message || message.type !== 'favorites-updated' || !Array.isArray(message.favorites)) {
           return
         }
@@ -358,15 +369,25 @@ export function useFavorites() {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       // Only handle our favorites storage
-      if (e.key === 'guestFavorites' && e.newValue) {
-        try {
-          const newFavorites = JSON.parse(e.newValue)
-          if (Array.isArray(newFavorites) && status === 'unauthenticated') {
-            // Update QuizContext when localStorage changes from another tab
-            setStep('step1_liked', newFavorites)
+      if (e.key === 'guestFavorites') {
+        // Handle removeItem (e.newValue === null)
+        if (e.newValue === null && e.oldValue && status === 'unauthenticated') {
+          // Favorites cleared (migration or manual removal)
+          setStep('step1_liked', [])
+          return
+        }
+        
+        // Handle favorites update (e.newValue exists)
+        if (e.newValue) {
+          try {
+            const newFavorites = JSON.parse(e.newValue)
+            if (Array.isArray(newFavorites) && status === 'unauthenticated') {
+              // Update QuizContext when localStorage changes from another tab
+              setStep('step1_liked', newFavorites)
+            }
+          } catch (err) {
+            console.error('Error parsing storage event:', err)
           }
-        } catch (err) {
-          console.error('Error parsing storage event:', err)
         }
       }
     }
@@ -376,7 +397,7 @@ export function useFavorites() {
     return () => {
       window.removeEventListener('storage', handleStorageChange)
     }
-  }, [status, setStep])
+  }, [status, session?.user?.id, setStep])
 
   return {
     favorites: getFavorites(),

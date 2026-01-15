@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { CTAButton } from '@/components/ui/CTAButton'
+import { safeFetch } from '@/lib/utils/api-helpers'
+import { toast } from 'sonner'
 
 export default function Register() {
   const router = useRouter()
@@ -78,12 +80,58 @@ export default function Register() {
       clearTimeout(timeoutRef.current)
     }
 
-    // Demo only - show message that registration will be activated soon
-    timeoutRef.current = setTimeout(() => {
-      setError('سيتم تفعيل إنشاء الحساب قريبًا. حالياً يمكنك استخدام حساب تجريبي: demo@askseba.com / 123456')
+    try {
+      // Register user via API
+      const response = await safeFetch<{
+        success: boolean
+        message?: string
+        error?: string
+        user?: {
+          id: string
+          email: string
+          name?: string | null
+        }
+      }>('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name: email.split('@')[0] // Use email prefix as default name
+        })
+      })
+
+      if (response.success) {
+        // Show success message
+        toast.success('تم إنشاء الحساب بنجاح! جاري تسجيل الدخول...', {
+          duration: 3000
+        })
+
+        // Auto-login after registration
+        const loginResult = await signIn('credentials', {
+          email,
+          password,
+          redirect: false
+        })
+
+        if (loginResult?.ok) {
+          router.push('/dashboard')
+        } else {
+          // If auto-login fails, redirect to login page
+          router.push('/login?registered=true')
+        }
+      } else {
+        setError(response.error || 'حدث خطأ أثناء إنشاء الحساب')
+        setIsLoading(false)
+      }
+    } catch (err) {
+      console.error('[Register] Error:', err)
+      const errorMessage = err instanceof Error ? err.message : 'حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.'
+      setError(errorMessage)
       setIsLoading(false)
-      timeoutRef.current = null
-    }, 1000)
+    }
   }
 
   return (

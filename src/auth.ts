@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 import Credentials from 'next-auth/providers/credentials'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // Fix CSRF for Next.js 15+ App Router
@@ -17,38 +19,54 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: 'كلمة المرور', type: 'password' }
       },
       async authorize(credentials) {
-        // Diagnostic logging (remove in production)
-        console.log('[Auth] authorize called with:', {
-          email: credentials?.email,
-          hasPassword: !!credentials?.password
-        })
-
         if (!credentials?.email || !credentials?.password) {
-          console.log('[Auth] Missing credentials')
           return null
         }
 
-        // Demo credentials
         const email = credentials.email as string
         const password = credentials.password as string
 
-        console.log('[Auth] Checking credentials:', {
-          email,
-          passwordMatch: password === '123456'
-        })
+        try {
+          // Find user in database
+          const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase() },
+            select: {
+              id: true,
+              email: true,
+              password: true,
+              name: true,
+              image: true,
+              bio: true,
+              role: true,
+              statsVerified: true
+            }
+          })
 
-        if (email === 'demo@askseba.com' && password === '123456') {
-          console.log('[Auth] ✅ Demo credentials valid')
-          return { 
-            id: 'demo-user',
-            name: 'مستخدم تجريبي', 
-            email: 'demo@askseba.com',
-            image: '/demo-avatar.png'
+          if (!user) {
+            return null
           }
-        }
 
-        console.log('[Auth] ❌ Invalid credentials')
-        return null
+          // Verify password
+          const isPasswordValid = await bcrypt.compare(password, user.password)
+
+          if (!isPasswordValid) {
+            return null
+          }
+
+          // Return user data (without password)
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name || null,
+            image: user.image || null,
+            bio: user.bio || undefined,
+            role: user.role,
+            statsVerified: user.statsVerified
+          }
+        } catch (error) {
+          console.error('[Auth] Database error:', error)
+          return null
+        }
       }
     })
   ],
@@ -66,11 +84,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.email = user.email
         token.image = user.image
         token.bio = user.bio
+        token.role = (user as any).role
+        token.statsVerified = (user as any).statsVerified
       }
       // تحديث التوكن عند استخدام update() من الواجهة
       if (trigger === 'update' && session) {
         token.bio = session.bio || token.bio
         token.image = session.image || token.image
+        if (session.statsVerified !== undefined) {
+          token.statsVerified = session.statsVerified
+        }
       }
       return token
     },
@@ -79,6 +102,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.id as string
         session.user.bio = token.bio as string | undefined
         session.user.image = token.image as string | undefined
+        session.user.role = token.role as string | undefined
+        session.user.statsVerified = token.statsVerified as boolean | undefined
       }
       return session
     }

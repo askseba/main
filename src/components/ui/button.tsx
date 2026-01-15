@@ -102,4 +102,4 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-export type { ButtonProps }
+// ButtonProps is already exported as interface above

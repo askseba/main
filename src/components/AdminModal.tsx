@@ -173,7 +173,7 @@ export default function AdminModal({ onClose, onRefresh }: AdminModalProps) {
                       </Button>
                       <Button
                         onClick={() => handleReject(suggestion.id)}
-                        variant="destructive"
+                        variant="danger"
                         size="sm"
                       >
                         ✗ رفض

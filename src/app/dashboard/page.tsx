@@ -115,8 +115,17 @@ export default function Dashboard() {
 
     const channel = new BroadcastChannel('favorites-sync')
     
-    const handleMessage = (event: MessageEvent<{ type: string; userId?: string; favorites?: string[] }>) => {
+    const handleMessage = (event: MessageEvent<{ type: string; userId?: string; favorites?: string[]; action?: string }>) => {
       const message = event.data
+      
+      // Handle favorites-cleared message (migration complete)
+      if (message.type === 'favorites-cleared') {
+        // Clear favorites for guest users
+        if (!session?.user?.id) {
+          setFavorites([])
+        }
+        return
+      }
       
       // Only handle favorites-updated messages
       if (message.type !== 'favorites-updated' || !message.favorites) return
@@ -139,15 +148,25 @@ export default function Dashboard() {
     
     // Also listen to storage events as fallback
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'guestFavorites' && e.newValue && !session?.user?.id) {
-        try {
-          const guestFavs = JSON.parse(e.newValue)
-          if (Array.isArray(guestFavs)) {
-            const favPerfumes = perfumes.filter(p => guestFavs.includes(p.id))
-            setFavorites(favPerfumes)
+      if (e.key === 'guestFavorites' && !session?.user?.id) {
+        // Handle removeItem (e.newValue === null)
+        if (e.newValue === null && e.oldValue) {
+          // Favorites cleared (migration or manual removal)
+          setFavorites([])
+          return
+        }
+        
+        // Handle favorites update (e.newValue exists)
+        if (e.newValue) {
+          try {
+            const guestFavs = JSON.parse(e.newValue)
+            if (Array.isArray(guestFavs)) {
+              const favPerfumes = perfumes.filter(p => guestFavs.includes(p.id))
+              setFavorites(favPerfumes)
+            }
+          } catch (err) {
+            console.error('Error parsing storage event:', err)
           }
-        } catch (err) {
-          console.error('Error parsing storage event:', err)
         }
       }
     }

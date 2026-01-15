@@ -35,10 +35,11 @@ export default function SearchPerfumeBar({ onResults }: SearchPerfumeBarProps) {
         )
         
         // Validate response structure
-        const validatedData = validateObject<{ perfumes?: Perfume[]; total?: number }>(
-          data,
-          'استجابة غير صحيحة من الخادم'
-        )
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          throw new Error('استجابة غير صحيحة من الخادم')
+        }
+        
+        const validatedData = data as { perfumes?: Perfume[]; total?: number }
         
         // Ensure perfumes is an array
         const perfumesArray = validatedData.perfumes 

@@ -69,9 +69,6 @@ export default function FeedbackCard({ suggestion, isTopVoted, onVote }: Feedbac
         throw new Error(data.error || 'استجابة غير صحيحة من الخادم')
       }
     } catch (error) {
-        toast.error(data.message || 'المعذرة، واجهنا مشكلة بسيطة.. جرب تصوّت مرة ثانية')
-      }
-    } catch (error) {
       console.error('Error voting:', error)
       const errorMessage = error instanceof Error ? error.message : 'ودنا نسمع صوتك! تأكد من اتصالك بالإنترنت'
       toast.error(errorMessage)

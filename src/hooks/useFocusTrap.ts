@@ -13,9 +13,9 @@ import { useEffect, useRef, RefObject } from 'react'
  * const modalRef = useRef<HTMLDivElement>(null)
  * useFocusTrap(isOpen, modalRef)
  */
-export function useFocusTrap(
+export function useFocusTrap<T extends HTMLElement = HTMLElement>(
   isActive: boolean,
-  containerRef: RefObject<HTMLElement>
+  containerRef: RefObject<T | null>
 ): void {
   const previousActiveElementRef = useRef<HTMLElement | null>(null)
 

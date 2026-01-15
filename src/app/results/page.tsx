@@ -107,7 +107,11 @@ export default function ResultsPage() {
         })
 
         // Validate response structure
-        const validatedData = validateObject<MatchAPIResponse>(data, 'استجابة غير صحيحة من الخادم')
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          throw new Error('استجابة غير صحيحة من الخادم')
+        }
+        
+        const validatedData = data as MatchAPIResponse
         
         if (validatedData.success) {
           // Validate perfumes is an array

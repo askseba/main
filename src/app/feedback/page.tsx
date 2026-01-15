@@ -74,7 +74,11 @@ export default function FeedbackPage() {
       const response = await safeFetch<FeedbackResponse>('/api/feedback/suggestions')
       
       // Validate response structure
-      const validatedData = validateObject<FeedbackResponse>(response, 'استجابة غير صحيحة من الخادم')
+      if (!response || typeof response !== 'object' || Array.isArray(response)) {
+        throw new Error('استجابة غير صحيحة من الخادم')
+      }
+      
+      const validatedData = response as FeedbackResponse
       
       // Ensure suggestions is an array
       const suggestionsArray = validatedData.suggestions 

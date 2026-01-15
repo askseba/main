@@ -359,8 +359,8 @@ export default function Step1FavoritesPage() {
         {/* Navigation */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-8 mt-8 border-t border-brown-text/10">
           <button
-            onClick={() => router.push('/')}
-            aria-label="العودة للصفحة الرئيسية"
+            onClick={() => router.push('/quiz')}
+            aria-label="العودة لصفحة الاختبار"
             className="min-h-[44px] px-8 py-3 text-brown-text border-2 border-brown-text/30 rounded-2xl font-tajawal-bold hover:bg-brown-text hover:text-white transition-all flex items-center justify-center gap-2 w-full sm:w-auto touch-manipulation"
           >
             <ChevronRight className="w-5 h-5 rtl:rotate-180" aria-hidden="true" />
