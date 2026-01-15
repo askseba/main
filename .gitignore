@@ -51,3 +51,5 @@ next-env.d.ts
 *_AUDIT*.md
 safety_backup.sh
 docs/archive/
+
+.dev-tools-output/
