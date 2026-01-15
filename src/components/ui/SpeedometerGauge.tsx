@@ -75,8 +75,7 @@ export function SpeedometerGauge({ score, status }: SpeedometerProps) {
     >
       {/* Encapsulated Container - Single Solid Block */}
       <div 
-        className="bg-[#F2F0EB] rounded-3xl py-6 px-6 relative"
-        style={{ backgroundColor: '#F2F0EB' }}
+        className="bg-cream-bg rounded-3xl py-6 px-6 relative"
       >
         {/* Gauge Arc Container */}
         <div className="relative w-full h-[180px]">

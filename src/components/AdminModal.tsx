@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { safeFetch, validateArray, validateObject } from '@/lib/utils/api-helpers'
 
 interface PendingSuggestion {
   id: string
@@ -19,6 +21,26 @@ interface AdminModalProps {
 export default function AdminModal({ onClose, onRefresh }: AdminModalProps) {
   const [pendingSuggestions, setPendingSuggestions] = useState<PendingSuggestion[]>([])
   const [loading, setLoading] = useState(true)
+  const modalRef = useRef<HTMLDivElement>(null)
+  
+  // Trap focus within modal
+  useFocusTrap(true, modalRef)
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+
+    // Cleanup: remove event listener when component unmounts
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [onClose])
 
   useEffect(() => {
     fetchPendingSuggestions()
@@ -27,17 +49,25 @@ export default function AdminModal({ onClose, onRefresh }: AdminModalProps) {
   const fetchPendingSuggestions = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/admin/suggestions')
-      if (response.ok) {
-        const data = await response.json()
-        setPendingSuggestions(data.pendingSuggestions)
+      const response = await safeFetch<{ pendingSuggestions?: PendingSuggestion[]; error?: string }>('/api/admin/suggestions')
+      
+      if (response.pendingSuggestions) {
+        const suggestions = validateArray<PendingSuggestion>(
+          response.pendingSuggestions,
+          'الاقتراحات يجب أن تكون مصفوفة'
+        )
+        setPendingSuggestions(suggestions)
       } else {
-        console.error('Failed to fetch pending suggestions:', response.statusText)
-        toast.error('فشل تحميل الاقتراحات المعلقة')
+        setPendingSuggestions([])
+        if (response.error) {
+          toast.error(response.error)
+        }
       }
     } catch (error) {
       console.error('Error fetching pending suggestions:', error)
-      toast.error('حدث خطأ في التحميل')
+      setPendingSuggestions([])
+      const errorMessage = error instanceof Error ? error.message : 'حدث خطأ في التحميل'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -45,67 +75,74 @@ export default function AdminModal({ onClose, onRefresh }: AdminModalProps) {
 
   const handleApprove = async (id: string) => {
     try {
-      const response = await fetch(`/api/admin/suggestions/${id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const response = await safeFetch<{ success?: boolean; error?: string }>(
+        `/api/admin/suggestions/${id}/approve`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      if (response.ok) {
+      if (response.success !== false) {
         console.log('Suggestion approved:', id)
         toast.success('تمت الموافقة على الاقتراح ✅')
         setPendingSuggestions((prev) => prev.filter((s) => s.id !== id))
         onRefresh?.()
       } else {
-        console.error('Failed to approve suggestion:', response.statusText)
-        toast.error('فشلت الموافقة')
+        throw new Error(response.error || 'فشلت الموافقة')
       }
     } catch (error) {
       console.error('Error approving suggestion:', error)
-      toast.error('حدث خطأ')
+      const errorMessage = error instanceof Error ? error.message : 'حدث خطأ'
+      toast.error(errorMessage)
     }
   }
 
   const handleReject = async (id: string) => {
     try {
-      const response = await fetch(`/api/admin/suggestions/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
+      const response = await safeFetch<{ success?: boolean; error?: string }>(
+        `/api/admin/suggestions/${id}/reject`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
 
-      if (response.ok) {
+      if (response.success !== false) {
         console.log('Suggestion rejected:', id)
         toast.success('تم رفض الاقتراح')
         setPendingSuggestions((prev) => prev.filter((s) => s.id !== id))
       } else {
-        console.error('Failed to reject suggestion:', response.statusText)
-        toast.error('فشل الرفض')
+        throw new Error(response.error || 'فشل الرفض')
       }
     } catch (error) {
       console.error('Error rejecting suggestion:', error)
-      toast.error('حدث خطأ')
+      const errorMessage = error instanceof Error ? error.message : 'حدث خطأ'
+      toast.error(errorMessage)
     }
   }
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div
+        ref={modalRef}
         className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
         dir="rtl"
       >
-        <h2 className="text-2xl font-bold text-[#5B4233] mb-6">لوحة إدارة الاقتراحات</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-brand-brown mb-6">لوحة إدارة الاقتراحات</h2>
 
         {loading ? (
-          <div className="text-center py-8 text-[#5B4233]/60">جاري التحميل...</div>
+          <div className="text-center py-8 text-brand-brown/60">جاري التحميل...</div>
         ) : (
           <>
             {/* Pending Suggestions */}
             <div className="space-y-4 mb-6">
-              <h3 className="text-lg font-semibold text-[#5B4233]/80 mb-3">
+              <h3 className="text-xl md:text-2xl font-semibold text-brand-brown/80 mb-3">
                 قيد المراجعة ({pendingSuggestions.length})
               </h3>
 
               {pendingSuggestions.length === 0 ? (
-                <div className="text-center py-8 text-[#5B4233]/60">
+                <div className="text-center py-8 text-brand-brown/60">
                   لا توجد اقتراحات قيد المراجعة
                 </div>
               ) : (
@@ -115,14 +152,14 @@ export default function AdminModal({ onClose, onRefresh }: AdminModalProps) {
                     className="bg-yellow-50 p-4 rounded-xl border border-yellow-200"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-bold text-[#5B4233]">{suggestion.title}</h4>
+                      <h4 className="text-lg md:text-xl font-bold text-brand-brown">{suggestion.title}</h4>
                       <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
                         {suggestion.category}
                       </span>
                     </div>
-                    <p className="text-sm text-[#5B4233]/70 mb-2">{suggestion.description}</p>
+                    <p className="text-sm text-brand-brown/70 mb-2">{suggestion.description}</p>
                     {suggestion.userName && (
-                      <p className="text-xs text-[#5B4233]/50 mb-3">
+                      <p className="text-xs text-brand-brown/50 mb-3">
                         من: {suggestion.userName}
                       </p>
                     )}

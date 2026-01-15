@@ -20,11 +20,17 @@ export async function GET(request: NextRequest) {
     })
 
     // Parse JSON fields from SQLite
-    const results = dbPerfumes.map(parsePerfumeFromDB)
+    // Ensure dbPerfumes is an array
+    const perfumesArray = Array.isArray(dbPerfumes) ? dbPerfumes : []
+    const results = perfumesArray.map(parsePerfumeFromDB)
+
+    // Ensure results is an array
+    const resultsArray = Array.isArray(results) ? results : []
 
     return NextResponse.json({
-      perfumes: results,
-      total: results.length
+      success: true,
+      perfumes: resultsArray,
+      total: resultsArray.length
     })
   } catch (error) {
     console.error('Search API Error:', error)

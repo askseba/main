@@ -62,11 +62,11 @@ function LoginContent() {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F2F0EB] flex items-center justify-center p-4">
+    <div dir="rtl" className="min-h-screen bg-cream-bg flex items-center justify-center p-4">
       <div className="bg-white/95 backdrop-blur-xl p-8 sm:p-12 rounded-3xl shadow-2xl max-w-md w-full mx-4 border border-primary/10">
         <div className="text-center mb-8">
           {/* FIX: Brand consistency - Always "Ask Seba" */}
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[#2f6f73] to-[#c0841a] bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-gradient-start to-brand-gold bg-clip-text text-transparent mb-4">
             تسجيل الدخول Ask Seba
           </h1>
         </div>
@@ -95,41 +95,44 @@ function LoginContent() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#5B4233]/20" />
+              <div className="w-full border-t border-brand-brown/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-[#5B4233]/60">أو</span>
+              <span className="px-2 bg-white text-brand-brown/60">أو</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#5B4233] mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-brand-brown mb-2">
                 البريد الإلكتروني
               </label>
               <input
                 id="email"
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-[#5B4233]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-[#5B4233] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-brand-brown/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-brand-brown disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="example@email.com"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#5B4233] mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-brand-brown mb-2">
                 كلمة المرور
               </label>
               <input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="w-full px-4 py-3 border border-[#5B4233]/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-[#5B4233] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border border-brand-brown/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-brand-brown disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="••••••••"
                 required
               />
@@ -146,7 +149,7 @@ function LoginContent() {
           </form>
         </div>
 
-        <p className="text-center mt-6 text-sm text-[#5B4233]/70">
+        <p className="text-center mt-6 text-sm text-brand-brown/70">
           لا تملك حساباً؟{' '}
           <Link href="/register" className="font-bold text-primary hover:text-primary/80 transition-colors">
             إنشاء حساب جديد

@@ -28,7 +28,14 @@ export async function GET(request: Request) {
       }
     })
 
-    return NextResponse.json(prices)
+    // Ensure prices is an array
+    const pricesArray = Array.isArray(prices) ? prices : []
+
+    return NextResponse.json({
+      success: true,
+      data: pricesArray,
+      total: pricesArray.length
+    })
   } catch (error) {
     console.error('Error fetching prices:', error)
     return NextResponse.json(

@@ -47,7 +47,7 @@ export default function NotificationsPage() {
             <Bell className="w-8 h-8" />
             الإشعارات
           </h1>
-          <p className="text-lg text-brown-text/70">
+          <p className="text-lg text-brown-text/85">
             عرض جميع إشعاراتك والتحديثات
           </p>
         </div>
@@ -58,10 +58,10 @@ export default function NotificationsPage() {
             // Empty State
             <div className="bg-white rounded-2xl p-12 shadow-sm border-2 border-brown-text/5 text-center">
               <Bell className="w-16 h-16 text-brown-text/30 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-brown-text mb-2">
+              <h3 className="text-xl md:text-2xl font-bold text-brown-text mb-2">
                 لا توجد إشعارات
               </h3>
-              <p className="text-brown-text/60">
+              <p className="text-brown-text/75">
                 لم تصلك أي إشعارات بعد. سيظهر هنا أي تحديثات جديدة.
               </p>
             </div>
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
                     <h3 className="text-xl font-bold text-brown-text mb-1">
                       {notification.title}
                     </h3>
-                    <p className="text-sm text-brown-text/60 mb-2">
+                    <p className="text-sm text-brown-text/75 mb-2">
                       {notification.message}
                     </p>
                     <p className="text-xs text-brown-text/40">

@@ -12,12 +12,12 @@ export default function AboutPage() {
   const stats = data.stats
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F2F0EB] text-[#5B4233]">
+    <div dir="rtl" className="min-h-screen bg-cream-bg text-brand-brown">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Back Button */}
         <Link 
           href="/profile" 
-          className="flex items-center gap-2 text-[#5B4233] mb-6 hover:text-[#c0841a] transition-colors"
+          className="flex items-center gap-2 text-brand-brown mb-6 hover:text-brand-gold transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>الرجوع للملف الشخصي</span>
@@ -28,7 +28,7 @@ export default function AboutPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16 py-16 px-6 rounded-3xl bg-gradient-to-br from-[#2f6f73] to-[#c0841a] text-white"
+          className="text-center mb-16 py-16 px-6 rounded-3xl bg-gradient-to-br from-gradient-start to-brand-gold text-white"
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
             {data.hero.title}
@@ -38,7 +38,7 @@ export default function AboutPage() {
           </p>
           <Link
             href="/quiz"
-            className="inline-block bg-white text-[#2f6f73] px-8 py-4 rounded-3xl font-bold hover:bg-white/90 transition-colors shadow-lg"
+            className="inline-block bg-white text-gradient-start px-8 py-4 rounded-3xl font-bold hover:bg-white/90 transition-colors shadow-lg"
           >
             {data.hero.cta}
           </Link>
@@ -53,10 +53,10 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-[#5B4233]/20 hover:bg-[#c0841a]/50 transition-colors"
+                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-brand-brown/20 hover:bg-brand-gold/50 transition-colors"
               >
                 <div className="text-4xl mb-4">{section.icon}</div>
-                <h2 className="text-xl font-bold mb-4">{section.title}</h2>
+                <h2 className="text-2xl md:text-3xl font-bold mb-4">{section.title}</h2>
                 {section.body.length > 0 && (
                   <div className="mb-4 space-y-2">
                     {section.body.map((paragraph, i) => (
@@ -85,12 +85,12 @@ export default function AboutPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-8 border border-[#5B4233]/20 text-center hover:shadow-xl transition-shadow"
+                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-8 border border-brand-brown/20 text-center hover:shadow-xl transition-shadow"
               >
-                <div className="text-4xl md:text-5xl font-bold text-[#c0841a] mb-3">
+                <div className="text-4xl md:text-5xl font-bold text-brand-gold mb-3">
                   {stat.number}
                 </div>
-                <div className="text-lg text-[#5B4233] font-medium">
+                <div className="text-lg text-brand-brown font-medium">
                   {stat.label}
                 </div>
               </motion.div>
@@ -100,7 +100,7 @@ export default function AboutPage() {
 
         {/* Testimonials Section */}
         <section className="mb-16">
-          <h2 className="text-xl font-bold mb-8 text-center">ماذا يقول عملاؤنا</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">ماذا يقول عملاؤنا</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {data.testimonials.map((testimonial, index) => (
               <motion.div
@@ -110,7 +110,7 @@ export default function AboutPage() {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-[#5B4233]/20 hover:bg-[#c0841a]/50 transition-colors relative"
               >
-                <Quote className="w-8 h-8 text-[#c0841a] mb-4" />
+                <Quote className="w-8 h-8 text-brand-gold mb-4" />
                 <p className="text-base mb-4">{testimonial.quote}</p>
                 <div className="text-sm font-bold">
                   {testimonial.author} - {testimonial.city}
@@ -129,10 +129,10 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-[#5B4233]/20 hover:bg-[#c0841a]/50 transition-colors"
+                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-brand-brown/20 hover:bg-brand-gold/50 transition-colors"
               >
-                <h3 className="text-xl font-bold mb-2">{value.title}</h3>
-                <p className="text-base text-[#5B4233]/60">{value.description}</p>
+                <h3 className="text-xl md:text-2xl font-bold mb-2">{value.title}</h3>
+                <p className="text-base text-brand-brown/60">{value.description}</p>
               </motion.div>
             ))}
           </div>
@@ -143,13 +143,13 @@ export default function AboutPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-8 border border-[#5B4233]/20 text-center"
+          className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-8 border border-brand-brown/20 text-center"
         >
-          <h2 className="text-xl font-bold mb-4">{data.cta.title}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">{data.cta.title}</h2>
           <p className="text-base mb-6">{data.cta.body}</p>
           <Link
             href={data.cta.button_href}
-            className="inline-block bg-[#c0841a] text-white px-8 py-4 rounded-3xl font-bold hover:bg-[#c0841a]/90 transition-colors shadow-lg"
+            className="inline-block bg-brand-gold text-white px-8 py-4 rounded-3xl font-bold hover:bg-brand-gold/90 transition-colors shadow-lg"
           >
             {data.cta.button}
           </Link>

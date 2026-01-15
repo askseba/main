@@ -72,7 +72,7 @@ export function PerfumeGrid({
           <div className="p-4 flex flex-col gap-2">
             <div className="flex justify-between items-start">
               <div className="flex-1 min-w-0">
-                <h3 className="text-neutral-900 text-lg font-bold leading-tight truncate">
+                <h3 className="text-neutral-900 text-xl md:text-2xl font-bold leading-tight truncate">
                   {perfume.name}
                 </h3>
                 <p className="text-neutral-500 text-sm mt-1">{perfume.brand}</p>

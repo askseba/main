@@ -49,7 +49,7 @@ export function SymptomCard({ symptom, isSelected, onClick }: SymptomCardProps) 
         }`}>
           {symptom.name}
         </h3>
-        <p className="text-sm text-brown-text/70 leading-relaxed">
+        <p className="text-sm text-brown-text/85 leading-relaxed">
           {symptom.description}
         </p>
       </div>

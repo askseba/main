@@ -21,10 +21,10 @@ export function StatsGrid({
   className = '' 
 }: StatsGridProps) {
   const defaultStats: Stat[] = [
-    { label: 'عمليات البحث', value: 45, icon: 'search', color: '#c0841a' },
-    { label: 'محفوظات', value: 12, icon: 'bookmark', color: '#10B981' },
-    { label: 'تطابقات', value: 23, icon: 'favorite', color: '#F59E0B' },
-    { label: 'عينات مطلوبة', value: 3, icon: 'science', color: '#EF4444' }
+    { label: 'عمليات البحث', value: 45, icon: 'search', color: '#c0841a' }, // brand-gold
+    { label: 'محفوظات', value: 12, icon: 'bookmark', color: '#10B981' }, // safe-green
+    { label: 'تطابقات', value: 23, icon: 'favorite', color: '#F59E0B' }, // warning-orange
+    { label: 'عينات مطلوبة', value: 3, icon: 'science', color: '#EF4444' } // danger-red
   ]
 
   const displayStats = stats || defaultStats
@@ -55,7 +55,7 @@ export function StatsGrid({
             >
               <span 
                 className="material-symbols-outlined text-xl"
-                style={{ color: stat.color || '#c0841a' }}
+                style={{ color: stat.color || '#c0841a' }} // brand-gold
               >
                 {stat.icon}
               </span>
@@ -65,7 +65,7 @@ export function StatsGrid({
           {/* Value */}
           <div 
             className="text-2xl font-bold text-text-dark dark:text-white"
-            style={{ color: stat.color || '#5B4233' }}
+            style={{ color: stat.color || '#5B4233' }} // brand-brown
           >
             {stat.value}
           </div>

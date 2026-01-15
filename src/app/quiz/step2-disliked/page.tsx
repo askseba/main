@@ -135,7 +135,7 @@ export default function Step2DislikedPage() {
           <h1 className="font-tajawal-bold text-4xl md:text-5xl text-brown-text mb-4">
             ❌ العطور التي لا تعجبني
           </h1>
-          <p className="text-xl text-brown-text/70 max-w-2xl mx-auto">
+          <p className="text-xl text-brown-text/85 max-w-2xl mx-auto">
             اختر 3-12 عطور لا تعجبك
           </p>
         </div>
@@ -170,7 +170,9 @@ export default function Step2DislikedPage() {
           <div className="relative">
             <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brown-text/50 w-5 h-5" />
             <input
-              type="text"
+              type="search"
+              inputMode="search"
+              autoComplete="off"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="ابحث عن عطر..."
@@ -197,7 +199,7 @@ export default function Step2DislikedPage() {
             {/* Search Results - Compact Cards */}
             {debouncedSearchTerm.trim() && searchResults.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-xl font-bold text-brown-text mb-4">نتائج البحث</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-brown-text mb-4">نتائج البحث</h2>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {searchResults.map((perfume) => (
                     <CompactPerfumeCard
@@ -228,10 +230,10 @@ export default function Step2DislikedPage() {
             {!debouncedSearchTerm.trim() && (
               <div className="text-center py-20 bg-gradient-to-b from-primary/5 to-transparent rounded-3xl p-12">
                 <Search className="w-20 h-20 mx-auto mb-6 text-primary/50" />
-                <h3 className="text-2xl font-bold text-brown-text mb-3">
+                <h3 className="text-xl md:text-2xl font-bold text-brown-text mb-3">
                   ابدأ البحث عن عطرك المفضل
                 </h3>
-                <p className="text-lg text-brown-text/70 mb-8 max-w-md mx-auto">
+                <p className="text-lg text-brown-text/85 mb-8 max-w-md mx-auto">
                   اكتب اسم العطر أو الماركة مثل: Dior، Chanel، Oud، Jasmine
                 </p>
               </div>
@@ -240,7 +242,7 @@ export default function Step2DislikedPage() {
             {/* Selected Perfumes (Full Cards with Images) */}
             {selectedPerfumesList.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-brown-text mb-4">
+                <h2 className="text-2xl md:text-3xl font-bold text-brown-text mb-4">
                   العطور المختارة ({selectedPerfumesList.length}/{MAX_SELECTIONS})
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -270,7 +272,7 @@ export default function Step2DislikedPage() {
           <button
             onClick={() => router.push('/quiz/step1-favorites')}
             aria-label="العودة للخطوة السابقة"
-            className="px-8 py-3 text-brown-text border-2 border-brown-text/30 rounded-2xl font-tajawal-bold hover:bg-brown-text hover:text-white transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+            className="min-h-[44px] px-8 py-3 text-brown-text border-2 border-brown-text/30 rounded-2xl font-tajawal-bold hover:bg-brown-text hover:text-white transition-all flex items-center justify-center gap-2 w-full sm:w-auto touch-manipulation"
           >
             <ChevronRight className="w-5 h-5 rtl:rotate-180" aria-hidden="true" />
             رجوع
@@ -302,7 +304,7 @@ export default function Step2DislikedPage() {
             variant="tertiary"
             size="default"
             onClick={handleSkip}
-            className="text-brown-text/70 hover:text-brown-text"
+            className="text-brown-text/85 hover:text-brown-text"
           >
             💡 تخطي هذه الخطوة
           </CTAButton>

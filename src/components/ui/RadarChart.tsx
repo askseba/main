@@ -15,12 +15,12 @@ interface RadarChartProps {
 }
 
 const DEFAULT_SAMPLE_DATA: RadarPoint[] = [
-  { name: "فلورال", score: 85, color: "#10B981" },
-  { name: "خشبي", score: 75, color: "#F59E0B" },
-  { name: "حمضيات", score: 30, color: "#EF4444" },
-  { name: "شرقي", score: 45, color: "#3B82F6" },
-  { name: "منعش", score: 60, color: "#8B5CF6" },
-  { name: "توابل", score: 70, color: "#EC4899" },
+  { name: "فلورال", score: 85, color: "#10B981" }, // safe-green
+  { name: "خشبي", score: 75, color: "#F59E0B" }, // warning-orange
+  { name: "حمضيات", score: 30, color: "#EF4444" }, // danger-red
+  { name: "شرقي", score: 45, color: "#3B82F6" }, // accent-blue
+  { name: "منعش", score: 60, color: "#8B5CF6" }, // accent-purple
+  { name: "توابل", score: 70, color: "#EC4899" }, // accent-pink
 ]
 
 export function RadarChart({ data, size = 400, className = "" }: RadarChartProps) {
@@ -76,7 +76,8 @@ export function RadarChart({ data, size = 400, className = "" }: RadarChartProps
               cy={size / 2}
               r={r}
               fill="none"
-              stroke="#5B4233"
+              stroke="currentColor"
+              className="text-brand-brown"
               strokeOpacity="0.1"
               strokeWidth="1"
               initial={{ opacity: 0 }}
@@ -104,7 +105,8 @@ export function RadarChart({ data, size = 400, className = "" }: RadarChartProps
         <motion.polygon
           points={polygonPath}
           fill="rgba(192, 132, 26, 0.2)"
-          stroke="#c0841a"
+          stroke="currentColor"
+          className="text-brand-gold"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -132,7 +134,8 @@ export function RadarChart({ data, size = 400, className = "" }: RadarChartProps
               x={point.x}
               y={point.y - 25}
               textAnchor="middle"
-              fill="#5B4233"
+              fill="currentColor"
+              className="text-brand-brown"
               fontSize="13"
               fontWeight="bold"
               initial={{ opacity: 0 }}

@@ -2,7 +2,7 @@
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { CTAButton } from '@/components/ui/CTAButton'
 
@@ -14,6 +14,16 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup function to clear any pending timeouts
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {}
@@ -63,19 +73,25 @@ export default function Register() {
 
     setIsLoading(true)
 
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
     // Demo only - show message that registration will be activated soon
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setError('سيتم تفعيل إنشاء الحساب قريبًا. حالياً يمكنك استخدام حساب تجريبي: demo@askseba.com / 123456')
       setIsLoading(false)
+      timeoutRef.current = null
     }, 1000)
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F2F0EB] flex items-center justify-center p-4">
+    <div dir="rtl" className="min-h-screen bg-cream-bg flex items-center justify-center p-4">
       <div className="bg-white/95 backdrop-blur-xl p-8 sm:p-12 rounded-3xl shadow-2xl max-w-md w-full mx-4 border border-primary/10">
         <div className="text-center mb-8">
           {/* FIX: Brand consistency - Always "Ask Seba" */}
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-[#2f6f73] to-[#c0841a] bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-gradient-start to-brand-gold bg-clip-text text-transparent mb-4">
             إنشاء حساب Ask Seba
           </h1>
         </div>
@@ -104,29 +120,31 @@ export default function Register() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#5B4233]/20" />
+              <div className="w-full border-t border-brand-brown/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-[#5B4233]/60">أو</span>
+              <span className="px-2 bg-white text-brand-brown/60">أو</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#5B4233] mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-brand-brown mb-2">
                 البريد الإلكتروني
               </label>
               <input
                 id="email"
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value)
                   setValidationErrors(prev => ({ ...prev, email: '' }))
                 }}
                 disabled={isLoading}
-                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-[#5B4233] disabled:opacity-50 disabled:cursor-not-allowed ${
-                  validationErrors.email ? 'border-red-300' : 'border-[#5B4233]/20'
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-brand-brown disabled:opacity-50 disabled:cursor-not-allowed ${
+                  validationErrors.email ? 'border-red-300' : 'border-brand-brown/20'
                 }`}
                 placeholder="example@email.com"
                 required
@@ -137,20 +155,21 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#5B4233] mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-brand-brown mb-2">
                 كلمة المرور
               </label>
               <input
                 id="password"
                 type="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value)
                   setValidationErrors(prev => ({ ...prev, password: '', confirmPassword: '' }))
                 }}
                 disabled={isLoading}
-                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-[#5B4233] disabled:opacity-50 disabled:cursor-not-allowed ${
-                  validationErrors.password ? 'border-red-300' : 'border-[#5B4233]/20'
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-brand-brown disabled:opacity-50 disabled:cursor-not-allowed ${
+                  validationErrors.password ? 'border-red-300' : 'border-brand-brown/20'
                 }`}
                 placeholder="••••••••"
                 required
@@ -161,20 +180,21 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#5B4233] mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-brand-brown mb-2">
                 تأكيد كلمة المرور
               </label>
               <input
                 id="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value)
                   setValidationErrors(prev => ({ ...prev, confirmPassword: '' }))
                 }}
                 disabled={isLoading}
-                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-[#5B4233] disabled:opacity-50 disabled:cursor-not-allowed ${
-                  validationErrors.confirmPassword ? 'border-red-300' : 'border-[#5B4233]/20'
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-brand-brown disabled:opacity-50 disabled:cursor-not-allowed ${
+                  validationErrors.confirmPassword ? 'border-red-300' : 'border-brand-brown/20'
                 }`}
                 placeholder="••••••••"
                 required
@@ -195,7 +215,7 @@ export default function Register() {
           </form>
         </div>
 
-        <p className="text-center mt-6 text-sm text-[#5B4233]/70">
+        <p className="text-center mt-6 text-sm text-brand-brown/70">
           لديك حساب؟{' '}
           <Link href="/login" className="font-bold text-primary hover:text-primary/80 transition-colors">
             تسجيل الدخول

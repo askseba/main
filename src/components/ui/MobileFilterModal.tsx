@@ -1,8 +1,9 @@
 "use client"
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { CTAButton } from './CTAButton'
 import { type ResultsFilters } from '@/hooks/useResultsFilters'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface FilterFamily {
   name: string
@@ -23,6 +24,28 @@ export function MobileFilterModal({
   filters,
   onFiltersChange
 }: MobileFilterModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null)
+  
+  // Trap focus within modal
+  useFocusTrap(isOpen, modalRef)
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+
+    // Cleanup: remove event listener when component unmounts or modal closes
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isOpen, onClose])
 
   const families: FilterFamily[] = [
     {
@@ -63,13 +86,16 @@ export function MobileFilterModal({
       />
       
       {/* Modal */}
-      <div className="absolute inset-x-0 bottom-0 top-auto max-h-[90vh] bg-white rounded-t-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
+      <div 
+        ref={modalRef}
+        className="absolute inset-x-0 bottom-0 top-auto max-h-[90vh] bg-white rounded-t-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300"
+      >
         {/* Header */}
         <div className="p-6 border-b border-brown-text/10 flex justify-between items-center bg-cream-bg sticky top-0 z-10">
-          <h2 className="font-tajawal-bold text-2xl text-brown-text">تصفية النتائج</h2>
+          <h2 className="font-tajawal-bold text-3xl md:text-4xl text-brown-text">تصفية النتائج</h2>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-brown-text/5 rounded-full transition-colors"
+            className="min-h-[44px] min-w-[44px] p-3 hover:bg-brown-text/5 rounded-full transition-colors touch-manipulation"
             aria-label="إغلاق"
           >
             <X className="w-6 h-6 text-brown-text" />
@@ -96,7 +122,7 @@ export function MobileFilterModal({
 
           {/* Perfume Families */}
           <div>
-            <h3 className="font-tajawal-bold text-brown-text mb-3">العائلة العطرية</h3>
+            <h3 className="font-tajawal-bold text-xl md:text-2xl text-brown-text mb-3">العائلة العطرية</h3>
             <div className="space-y-2 pe-2 border-e-2 border-primary/10">
               {families.map((family, idx) => (
                 <div key={idx}>
@@ -111,7 +137,7 @@ export function MobileFilterModal({
                   >
                     <span 
                       className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: family.color || '#c0841a' }}
+                      style={{ backgroundColor: family.color || '#c0841a' }} // brand-gold
                     />
                     <span className="text-brown-text group-hover:text-primary transition-colors">
                       {family.name}
@@ -125,7 +151,7 @@ export function MobileFilterModal({
                         return (
                           <label 
                             key={childIdx}
-                            className="flex items-center gap-2 text-sm text-brown-text/70 cursor-pointer"
+                            className="flex items-center gap-2 text-sm text-brown-text/85 cursor-pointer"
                           >
                             <input
                               type="checkbox"
@@ -151,7 +177,7 @@ export function MobileFilterModal({
 
           {/* Price Range */}
           <div>
-            <h3 className="font-tajawal-bold text-brown-text mb-3">السعر</h3>
+            <h3 className="font-tajawal-bold text-xl md:text-2xl text-brown-text mb-3">السعر</h3>
             <div className="flex items-center gap-4 mb-4">
               <div className="bg-cream-bg px-3 py-2 rounded-lg border border-brown-text/10 text-center flex-1">
                 {filters.maxPrice} ر.س

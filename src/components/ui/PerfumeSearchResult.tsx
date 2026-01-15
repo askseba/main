@@ -34,7 +34,7 @@ export function PerfumeSearchResult({
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-bold text-brown-text text-lg truncate">
+          <h3 className="font-bold text-brown-text text-xl md:text-2xl truncate">
             {perfume.name}
           </h3>
           {perfume.isSafe !== undefined && (
@@ -47,7 +47,7 @@ export function PerfumeSearchResult({
             </span>
           )}
         </div>
-        <p className="text-sm text-brown-text/70 truncate">{perfume.brand}</p>
+        <p className="text-sm text-brown-text/85 truncate">{perfume.brand}</p>
         {perfume.matchPercentage !== undefined && (
           <p className="text-xs text-primary font-medium mt-1">
             تطابق: {perfume.matchPercentage}%
@@ -62,7 +62,7 @@ export function PerfumeSearchResult({
         }}
         disabled={disabled}
         className={`
-          flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all
+          min-h-[44px] min-w-[44px] flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm transition-all touch-manipulation
           ${isSelected
             ? 'bg-red-100 text-red-700 hover:bg-red-200'
             : 'bg-primary text-white hover:bg-primary/90'

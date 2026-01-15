@@ -114,14 +114,19 @@ export async function POST(request: NextRequest) {
     const scoredPerfumes = calculateMatchScores(allPerfumes, userPreference)
 
     // 4. Return scored and sorted perfumes
+    // Ensure perfumes is an array
+    const perfumesArray = Array.isArray(scoredPerfumes) ? scoredPerfumes : []
+    
     return NextResponse.json({
       success: true,
-      total: scoredPerfumes.length,
-      perfumes: scoredPerfumes,
-      userScentDNA: userPreference.likedPerfumesFamilies,
-      hasPreferences: userPreference.likedPerfumesFamilies.length > 0 || 
-                      userPreference.allergyProfile.ingredients.length > 0 ||
-                      userPreference.allergyProfile.symptoms.length > 0
+      total: perfumesArray.length,
+      perfumes: perfumesArray,
+      userScentDNA: Array.isArray(userPreference.likedPerfumesFamilies) 
+        ? userPreference.likedPerfumesFamilies 
+        : [],
+      hasPreferences: (Array.isArray(userPreference.likedPerfumesFamilies) && userPreference.likedPerfumesFamilies.length > 0) || 
+                      (userPreference.allergyProfile?.ingredients?.length > 0) ||
+                      (userPreference.allergyProfile?.symptoms?.length > 0)
     })
 
   } catch (error) {
@@ -144,17 +149,19 @@ export async function GET() {
       orderBy: { baseScore: 'desc' }
     })
 
-    const perfumes = dbPerfumes.map(p => {
-      const parsed = parsePerfumeFromDB(p)
-      return {
-        ...parsed,
-        finalScore: parsed.score,
-        tasteScore: 50,
-        safetyScore: 100,
-        isExcluded: false,
-        exclusionReason: null
-      }
-    })
+    const perfumes = Array.isArray(dbPerfumes)
+      ? dbPerfumes.map(p => {
+          const parsed = parsePerfumeFromDB(p)
+          return {
+            ...parsed,
+            finalScore: parsed.score,
+            tasteScore: 50,
+            safetyScore: 100,
+            isExcluded: false,
+            exclusionReason: null
+          }
+        })
+      : []
 
     return NextResponse.json({
       success: true,

@@ -64,10 +64,28 @@ export default function Step1FavoritesPage() {
   const isMaxReached = selectedPerfumes.length >= MAX_SELECTIONS
 
   // Timer ref for max warning
-  const maxWarningTimerRef = useCallback((id: string) => {
+  const maxWarningTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup function to clear max warning timeout
+  useEffect(() => {
+    return () => {
+      if (maxWarningTimerRef.current) {
+        clearTimeout(maxWarningTimerRef.current)
+      }
+    }
+  }, [])
+
+  const handleMaxWarning = useCallback((id: string) => {
     if (selectedPerfumes.length >= MAX_SELECTIONS && !selectedPerfumes.includes(id)) {
       setShowMaxWarning(true)
-      setTimeout(() => setShowMaxWarning(false), 3000)
+      // Clear any existing timeout
+      if (maxWarningTimerRef.current) {
+        clearTimeout(maxWarningTimerRef.current)
+      }
+      maxWarningTimerRef.current = setTimeout(() => {
+        setShowMaxWarning(false)
+        maxWarningTimerRef.current = null
+      }, 3000)
     }
   }, [selectedPerfumes])
 
@@ -90,13 +108,13 @@ export default function Step1FavoritesPage() {
   // Add perfume from search results
   const handleAddPerfume = useCallback((id: string) => {
     if (selectedPerfumes.length >= MAX_SELECTIONS) {
-      maxWarningTimerRef(id)
+      handleMaxWarning(id)
       return
     }
     if (!selectedPerfumes.includes(id)) {
       setSelectedPerfumes(prev => [...prev, id])
     }
-  }, [selectedPerfumes, maxWarningTimerRef])
+  }, [selectedPerfumes, handleMaxWarning])
 
   // Remove perfume from selected list
   const handleRemovePerfume = useCallback((id: string) => {
@@ -138,7 +156,7 @@ export default function Step1FavoritesPage() {
           <h1 className="font-tajawal-bold text-4xl md:text-5xl text-brown-text mb-4">
             🧡 العطور التي تعجبني
           </h1>
-          <p className="text-xl text-brown-text/70 max-w-2xl mx-auto">
+          <p className="text-xl text-brown-text/85 max-w-2xl mx-auto">
             اختر 3-12 عطور من المفضّلات لديك
           </p>
         </div>
@@ -183,7 +201,9 @@ export default function Step1FavoritesPage() {
           <div className="relative">
             <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brown-text/50 w-5 h-5" />
             <input
-              type="text"
+              type="search"
+              inputMode="search"
+              autoComplete="off"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="اكتب اسم عطر للبدء..."
@@ -212,10 +232,10 @@ export default function Step1FavoritesPage() {
                   >
                     {/* Text Only - Name & Brand */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-brown-text truncate">
+                      <h3 className="text-xl md:text-2xl font-bold text-brown-text truncate">
                         {perfume.name}
                       </h3>
-                      <p className="text-sm text-brown-text/60 truncate">
+                      <p className="text-sm text-brown-text/75 truncate">
                         {perfume.brand}
                       </p>
                     </div>
@@ -224,7 +244,7 @@ export default function Step1FavoritesPage() {
                     <button
                       onClick={() => handleAddPerfume(perfume.id)}
                       disabled={isMaxReached}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                      className={`min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-5 py-3 rounded-lg font-semibold text-sm transition-all touch-manipulation ${
                         isMaxReached
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
                           : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
@@ -242,7 +262,7 @@ export default function Step1FavoritesPage() {
           {/* No Results Message */}
           {debouncedSearchTerm.trim() && searchResults.length === 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-brown-text/20 rounded-xl shadow-xl z-40 p-6 text-center">
-              <p className="text-brown-text/60">لا توجد نتائج مطابقة لـ &ldquo;{debouncedSearchTerm}&rdquo;</p>
+              <p className="text-brown-text/75">لا توجد نتائج مطابقة لـ &ldquo;{debouncedSearchTerm}&rdquo;</p>
             </div>
           )}
         </div>
@@ -265,7 +285,7 @@ export default function Step1FavoritesPage() {
                 <h3 className="text-2xl font-bold text-brown-text mb-3">
                   اكتب اسم عطر للبدء...
                 </h3>
-                <p className="text-lg text-brown-text/60 mb-4 max-w-md mx-auto">
+                <p className="text-lg text-brown-text/75 mb-4 max-w-md mx-auto">
                   ابحث عن عطورك المفضلة بالاسم أو الماركة
                 </p>
                 <div className="flex flex-wrap justify-center gap-2 max-w-lg mx-auto">
@@ -273,7 +293,7 @@ export default function Step1FavoritesPage() {
                     <button
                       key={suggestion}
                       onClick={() => setSearchTerm(suggestion)}
-                      className="px-4 py-2 bg-white border border-brown-text/20 rounded-full text-sm text-brown-text/70 hover:border-primary hover:text-primary transition-colors"
+                      className="min-h-[44px] min-w-[44px] px-6 py-3 bg-white border border-brown-text/20 rounded-full text-sm text-brown-text/85 hover:border-primary hover:text-primary transition-colors touch-manipulation"
                     >
                       {suggestion}
                     </button>
@@ -288,13 +308,13 @@ export default function Step1FavoritesPage() {
             {selectedPerfumesList.length > 0 && (
               <div className="mt-8">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-brown-text">
+                  <h2 className="text-2xl md:text-3xl font-bold text-brown-text">
                     العطور المختارة ({selectedPerfumesList.length}/{MAX_SELECTIONS})
                   </h2>
                   {selectedPerfumesList.length > 0 && (
                     <button
                       onClick={() => setSelectedPerfumes([])}
-                      className="text-sm text-red-500 hover:text-red-600 font-medium"
+                      className="min-h-[44px] min-w-[44px] px-4 py-2 text-sm text-red-500 hover:text-red-600 font-medium touch-manipulation"
                     >
                       مسح الكل
                     </button>
@@ -307,10 +327,10 @@ export default function Step1FavoritesPage() {
                       {/* Remove Button */}
                       <button
                         onClick={() => handleRemovePerfume(perfume.id)}
-                        className="absolute -top-2 -right-2 z-10 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                        className="absolute -top-2 -right-2 z-10 min-w-[44px] min-h-[44px] w-11 h-11 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110 touch-manipulation"
                         aria-label={`إزالة ${perfume.name}`}
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-5 h-5" />
                       </button>
 
                       {/* Full PerfumeCard with Image */}
@@ -341,7 +361,7 @@ export default function Step1FavoritesPage() {
           <button
             onClick={() => router.push('/')}
             aria-label="العودة للصفحة الرئيسية"
-            className="px-8 py-3 text-brown-text border-2 border-brown-text/30 rounded-2xl font-tajawal-bold hover:bg-brown-text hover:text-white transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+            className="min-h-[44px] px-8 py-3 text-brown-text border-2 border-brown-text/30 rounded-2xl font-tajawal-bold hover:bg-brown-text hover:text-white transition-all flex items-center justify-center gap-2 w-full sm:w-auto touch-manipulation"
           >
             <ChevronRight className="w-5 h-5 rtl:rotate-180" aria-hidden="true" />
             رجوع
@@ -369,7 +389,7 @@ export default function Step1FavoritesPage() {
 
         {/* Help Text */}
         <div className="text-center mt-8">
-          <p className="text-sm text-brown-text/60">
+          <p className="text-sm text-brown-text/75">
             💡 كلما اخترت عطور أكثر، كانت التوصيات أدق وأكثر تناسباً مع ذوقك
           </p>
         </div>

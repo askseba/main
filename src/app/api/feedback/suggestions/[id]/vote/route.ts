@@ -50,18 +50,29 @@ export async function POST(
       where: { suggestionId },
     })
 
+    // Ensure voteCount is a number and hasVoted is a boolean
+    const validatedVoteCount = typeof voteCount === 'number' ? voteCount : 0
+    const validatedHasVoted = typeof hasVoted === 'boolean' ? hasVoted : false
+
     return NextResponse.json({
-      votes: voteCount,
-      hasVoted,
+      success: true,
+      votes: validatedVoteCount,
+      hasVoted: validatedHasVoted,
     })
   } catch (error: unknown) {
     console.error('Error toggling vote:', error)
 
     // Handle UNIQUE constraint violation (race condition)
     if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-      return NextResponse.json({ error: 'You have already voted' }, { status: 409 })
+      return NextResponse.json(
+        { success: false, error: 'لقد قمت بالتصويت مسبقاً' },
+        { status: 409 }
+      )
     }
 
-    return NextResponse.json({ error: 'Failed to toggle vote' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: 'فشل التصويت' },
+      { status: 500 }
+    )
   }
 }

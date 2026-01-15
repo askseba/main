@@ -22,12 +22,12 @@ export default function FAQPage() {
     .filter(cat => cat.questions.length > 0)
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F2F0EB] text-[#5B4233]">
+    <div dir="rtl" className="min-h-screen bg-cream-bg text-brand-brown">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Back Button */}
         <Link 
           href="/profile" 
-          className="flex items-center gap-2 text-[#5B4233] mb-6 hover:text-[#c0841a] transition-colors"
+          className="flex items-center gap-2 text-brand-brown mb-6 hover:text-brand-gold transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>الرجوع للملف الشخصي</span>
@@ -38,12 +38,12 @@ export default function FAQPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-[#F2F0EB] py-12 px-6 text-center mb-8"
+          className="bg-cream-bg py-12 px-6 text-center mb-8"
         >
-          <h1 className="text-[33.6px] font-bold mb-4 text-[#5B4233]">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-brand-brown">
             {data.hero.title}
           </h1>
-          <p className="text-xl font-bold text-[#5B4233]/80">
+          <p className="text-xl font-bold text-brand-brown/80">
             {data.hero.subtitle}
           </p>
         </motion.section>
@@ -56,13 +56,15 @@ export default function FAQPage() {
           className="mb-8"
         >
           <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#5B4233]/40" />
+            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-brand-brown/40" />
             <input
               type="search"
+              inputMode="search"
+              autoComplete="off"
               placeholder="ابحث في الأسئلة..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pr-12 pl-4 py-3 rounded-3xl border border-[#5B4233]/20 bg-white/90 backdrop-blur-sm shadow-lg text-base text-[#5B4233] focus:outline-none focus:ring-2 focus:ring-[#c0841a]/50"
+              className="w-full pr-12 pl-4 py-3 rounded-3xl border border-brand-brown/20 bg-white/90 backdrop-blur-sm shadow-lg text-base text-brand-brown focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
             />
           </div>
         </motion.div>
@@ -76,7 +78,7 @@ export default function FAQPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: categoryIndex * 0.1 }}
             >
-              <h2 className="text-xl font-bold mb-4 text-[#5B4233]">
+              <h2 className="text-2xl md:text-3xl font-bold mb-4 text-brand-brown">
                 {category.name}
               </h2>
               <Accordion.Root type="single" collapsible className="space-y-2">
@@ -87,12 +89,12 @@ export default function FAQPage() {
                     className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl border border-[#5B4233]/20 mb-2 overflow-hidden"
                   >
                     <Accordion.Header>
-                      <Accordion.Trigger className="w-full px-6 py-4 flex flex-row-reverse justify-between items-center text-base font-bold text-[#5B4233] hover:bg-[#c0841a]/50 transition-colors text-right">
+                      <Accordion.Trigger className="w-full px-6 py-4 flex flex-row-reverse justify-between items-center text-base font-bold text-brand-brown hover:bg-brand-gold/50 transition-colors text-right">
                         <ChevronDown className="w-5 h-5 flex-shrink-0 transition-transform duration-300 data-[state=open]:rotate-180" />
                         <span>{question.question}</span>
                       </Accordion.Trigger>
                     </Accordion.Header>
-                    <Accordion.Content className="px-6 pb-4 text-base text-[#5B4233]/80 overflow-hidden">
+                    <Accordion.Content className="px-6 pb-4 text-base text-brand-brown/80 overflow-hidden">
                       <div className="py-2">
                         <p className="whitespace-pre-line">{question.answer}</p>
                       </div>
@@ -111,7 +113,7 @@ export default function FAQPage() {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <p className="text-base text-[#5B4233]/60">
+            <p className="text-base text-brand-brown/60">
               لم يتم العثور على أسئلة تطابق "{searchTerm}"
             </p>
           </motion.div>

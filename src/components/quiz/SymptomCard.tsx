@@ -24,7 +24,7 @@ export function SymptomCard({ symptom, isSelected, onClick }: SymptomCardProps) 
       }}
       className={`
         relative p-6 rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2
-        transition-all duration-300 min-h-[140px] text-right w-full
+        transition-all duration-300 min-h-[140px] text-right w-full touch-manipulation
         ${isSelected
           ? 'bg-white border-4 border-primary shadow-2xl ring-2 ring-primary/20'
           : 'bg-white border-2 border-brown-text/20 hover:border-primary/50 hover:bg-cream-bg/50'
@@ -49,7 +49,7 @@ export function SymptomCard({ symptom, isSelected, onClick }: SymptomCardProps) 
         }`}>
           {symptom.name}
         </h3>
-        <p className="text-sm text-brown-text/70 leading-relaxed">
+        <p className="text-sm text-brown-text/85 leading-relaxed">
           {symptom.description}
         </p>
       </div>

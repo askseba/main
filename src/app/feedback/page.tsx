@@ -1,21 +1,32 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import FeedbackCard from '@/components/FeedbackCard'
-import FeedbackModal from '@/components/FeedbackModal'
-import AdminModal from '@/components/AdminModal'
 import { Button } from '@/components/ui/button'
+import { safeFetch, validateArray, validateObject } from '@/lib/utils/api-helpers'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+
+// Lazy load modals - heavy components that are only shown when needed
+const FeedbackModal = dynamic(() => import('@/components/FeedbackModal'), {
+  ssr: false,
+  loading: () => null // Modal handles its own loading state
+})
+
+const AdminModal = dynamic(() => import('@/components/AdminModal'), {
+  ssr: false,
+  loading: () => null // Modal handles its own loading state
+})
 
 interface Suggestion {
   id: string
@@ -60,18 +71,24 @@ export default function FeedbackPage() {
   const fetchSuggestions = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/feedback/suggestions')
-      if (response.ok) {
-        const data: FeedbackResponse = await response.json()
-        setSuggestions(data.suggestions)
-        setDoneCount(data.doneCount)
-      } else {
-        console.error('Failed to fetch suggestions:', response.statusText)
-        toast.error('واجهنا مشكلة في تحميل الاقتراحات')
-      }
+      const response = await safeFetch<FeedbackResponse>('/api/feedback/suggestions')
+      
+      // Validate response structure
+      const validatedData = validateObject<FeedbackResponse>(response, 'استجابة غير صحيحة من الخادم')
+      
+      // Ensure suggestions is an array
+      const suggestionsArray = validatedData.suggestions 
+        ? validateArray<Suggestion>(validatedData.suggestions, 'الاقتراحات يجب أن تكون مصفوفة')
+        : []
+      
+      setSuggestions(suggestionsArray)
+      setDoneCount(typeof validatedData.doneCount === 'number' ? validatedData.doneCount : 0)
     } catch (error) {
       console.error('Error fetching suggestions:', error)
-      toast.error('تأكد من اتصالك بالإنترنت')
+      setSuggestions([])
+      setDoneCount(0)
+      const errorMessage = error instanceof Error ? error.message : 'تأكد من اتصالك بالإنترنت'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -91,25 +108,27 @@ export default function FeedbackPage() {
   // Handle add suggestion
   const handleAddSuggestion = async (title: string, description: string, category: string) => {
     try {
-      const response = await fetch('/api/feedback/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, category }),
-      })
+      const response = await safeFetch<{ success: boolean; suggestion?: unknown; message?: string; error?: string }>(
+        '/api/feedback/suggestions',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description, category }),
+        }
+      )
 
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Suggestion added:', data)
-        toast.success('تم إرسال اقتراحك بنجاح! سيتم مراجعته قريباً 🎉')
+      if (response.success) {
+        console.log('Suggestion added:', response.suggestion)
+        toast.success(response.message || 'تم إرسال اقتراحك بنجاح! سيتم مراجعته قريباً 🎉')
         setShowAddModal(false)
         fetchSuggestions()
       } else {
-        console.error('Failed to add suggestion:', response.statusText)
-        toast.error('واجهنا مشكلة في حفظ اقتراحك')
+        throw new Error(response.error || 'واجهنا مشكلة في حفظ اقتراحك')
       }
     } catch (error) {
       console.error('Error adding suggestion:', error)
-      toast.error('تأكد من اتصالك بالإنترنت')
+      const errorMessage = error instanceof Error ? error.message : 'تأكد من اتصالك بالإنترنت'
+      toast.error(errorMessage)
     }
   }
 
@@ -117,18 +136,18 @@ export default function FeedbackPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-[#F2F0EB] flex items-center justify-center">
-        <div className="text-[#5B4233] text-xl">جاري التحميل...</div>
+      <div className="min-h-screen bg-cream-bg flex items-center justify-center">
+        <div className="text-brand-brown text-xl">جاري التحميل...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F0EB] p-6" dir="rtl">
+    <div className="min-h-screen bg-cream-bg p-6" dir="rtl">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12 space-y-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#5B4233] mb-3 leading-tight">
+          <h1 className="text-4xl md:text-5xl font-bold text-brand-brown mb-3 leading-tight">
             ساعدنا نكون أفضل لأجلك
           </h1>
 
@@ -157,7 +176,7 @@ export default function FeedbackPage() {
             <Button
               size="lg"
               onClick={() => setShowAddModal(true)}
-              className="w-full sm:w-auto shadow-lg bg-[#c0841a] hover:bg-[#a0701a] text-white"
+              className="w-full sm:w-auto shadow-lg bg-brand-gold hover:bg-brand-gold-dark text-white"
             >
               وش ناقصنا؟ 💡
             </Button>
@@ -188,7 +207,7 @@ export default function FeedbackPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-12 text-[#5B4233]/60"
+              className="text-center py-12 text-brand-brown/60"
             >
               لا توجد اقتراحات حالياً. كن أول من يقترح تحسينًا!
             </motion.div>

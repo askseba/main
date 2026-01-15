@@ -69,7 +69,7 @@ export default function SettingsPage() {
             <Settings className="w-8 h-8" />
             الإعدادات
           </h1>
-          <p className="text-lg text-brown-text/70">
+          <p className="text-lg text-brown-text/85">
             إدارة إعدادات حسابك وتفضيلاتك
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function SettingsPage() {
                   <h3 className="text-xl font-bold text-brown-text mb-1">
                     {section.title}
                   </h3>
-                  <p className="text-sm text-brown-text/60">
+                  <p className="text-sm text-brown-text/75">
                     {section.description}
                   </p>
                 </div>

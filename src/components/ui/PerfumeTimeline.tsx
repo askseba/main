@@ -187,7 +187,7 @@ export function PerfumeTimeline({ stages, className = '' }: PerfumeTimelineProps
                 {stage.status.toUpperCase()}
               </span>
               {stage.notes && (
-                <p className="text-xs text-brown-text/70 mt-1 line-clamp-2" aria-label={`Notes: ${stage.notes}`}>
+                <p className="text-xs text-brown-text/85 mt-1 line-clamp-2" aria-label={`Notes: ${stage.notes}`}>
                   {stage.notes}
                 </p>
               )}

@@ -6,6 +6,7 @@ import { Flame, Sparkles } from 'lucide-react' // Changed Fire to Flame as it's 
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { safeFetch, validateObject } from '@/lib/utils/api-helpers'
 
 interface Suggestion {
   id: string
@@ -46,12 +47,15 @@ export default function FeedbackCard({ suggestion, isTopVoted, onVote }: Feedbac
   const handleVote = async () => {
     setIsVoting(true)
     try {
-      const res = await fetch(`/api/feedback/suggestions/${suggestion.id}/vote`, {
-        method: 'POST',
-      })
-      const data = await res.json()
+      const data = await safeFetch<{ votes: number; hasVoted: boolean; error?: string }>(
+        `/api/feedback/suggestions/${suggestion.id}/vote`,
+        {
+          method: 'POST',
+        }
+      )
 
-      if (res.ok) {
+      // Validate response structure
+      if (typeof data.votes === 'number' && typeof data.hasVoted === 'boolean') {
         toast.success('تسلم! صوتك وصل وبيصنع فرق ❤️', {
           duration: 3500,
           position: 'top-center',
@@ -62,11 +66,15 @@ export default function FeedbackCard({ suggestion, isTopVoted, onVote }: Feedbac
           suggestionId: suggestion.id,
         })
       } else {
+        throw new Error(data.error || 'استجابة غير صحيحة من الخادم')
+      }
+    } catch (error) {
         toast.error(data.message || 'المعذرة، واجهنا مشكلة بسيطة.. جرب تصوّت مرة ثانية')
       }
     } catch (error) {
       console.error('Error voting:', error)
-      toast.error('ودنا نسمع صوتك! تأكد من اتصالك بالإنترنت')
+      const errorMessage = error instanceof Error ? error.message : 'ودنا نسمع صوتك! تأكد من اتصالك بالإنترنت'
+      toast.error(errorMessage)
     } finally {
       setIsVoting(false)
     }
@@ -81,7 +89,7 @@ export default function FeedbackCard({ suggestion, isTopVoted, onVote }: Feedbac
         'group p-6 rounded-2xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
         isMyInProgress
           ? 'ring-4 ring-amber-400/30 bg-gradient-to-br from-amber-50/80 to-orange-50/60 shadow-2xl border-2 border-amber-400'
-          : 'border-[#5B4233]/10 bg-white shadow-sm'
+          : 'border-brand-brown/10 bg-white shadow-sm'
       )}
     >
       {/* 🔥 Top Voted Badge */}
@@ -116,7 +124,7 @@ export default function FeedbackCard({ suggestion, isTopVoted, onVote }: Feedbac
       <div className="space-y-3">
         {/* Title + Status Badge */}
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-bold text-[#5B4233] leading-tight flex-1">
+          <h3 className="text-xl md:text-2xl font-bold text-brand-brown leading-tight flex-1">
             {suggestion.title}
           </h3>
           <span
@@ -130,15 +138,15 @@ export default function FeedbackCard({ suggestion, isTopVoted, onVote }: Feedbac
         </div>
 
         {/* Description */}
-        <p className="text-[#5B4233]/70 text-sm leading-relaxed">
+        <p className="text-brand-brown/70 text-sm leading-relaxed">
           {suggestion.description}
         </p>
 
         {/* Vote Section */}
-        <div className="flex items-center justify-between pt-3 border-t border-[#5B4233]/10">
+        <div className="flex items-center justify-between pt-3 border-t border-brand-brown/10">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-[#5B4233]">↑</span>
-            <span className="text-sm font-semibold text-[#5B4233]/80">
+            <span className="text-2xl font-bold text-brand-brown">↑</span>
+            <span className="text-sm font-semibold text-brand-brown/80">
               {suggestion.votes} مهتم
             </span>
           </div>
@@ -146,10 +154,10 @@ export default function FeedbackCard({ suggestion, isTopVoted, onVote }: Feedbac
             onClick={handleVote}
             disabled={isVoting}
             className={cn(
-              'px-6 py-2 rounded-lg text-sm font-medium transition-all duration-300',
+              'min-h-[44px] min-w-[44px] px-6 py-3 rounded-lg text-sm font-medium transition-all duration-300 touch-manipulation',
               suggestion.hasVoted
-                ? 'bg-[#c0841a] text-white hover:bg-[#a0701a] shadow-md'
-                : 'bg-[#c0841a]/10 text-[#c0841a] hover:bg-[#c0841a]/20 border border-[#c0841a]/30'
+                ? 'bg-brand-gold text-white hover:bg-brand-gold-dark shadow-md'
+                : 'bg-brand-gold/10 text-brand-gold hover:bg-brand-gold/20 border border-brand-gold/30'
             )}
           >
             {isVoting ? 'جاري...' : suggestion.hasVoted ? 'أتفق 👍' : 'أتفق 👍'}

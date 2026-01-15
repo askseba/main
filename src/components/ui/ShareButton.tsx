@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Share2, Check, Copy } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -20,9 +20,19 @@ export function ShareButton({
 }: ShareButtonProps) {
   const [isShared, setIsShared] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '')
   const shareText = text || `صبا اختارت لي ${title} 🎯 ✅ آمن تماماً`
+
+  // Cleanup function to clear any pending timeouts
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -33,7 +43,14 @@ export function ShareButton({
           url: shareUrl
         })
         setIsShared(true)
-        setTimeout(() => setIsShared(false), 2000)
+        // Clear any existing timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+        timeoutRef.current = setTimeout(() => {
+          setIsShared(false)
+          timeoutRef.current = null
+        }, 2000)
       } catch (error) {
         // User cancelled or error occurred
         console.log('Share cancelled or failed:', error)
@@ -49,7 +66,14 @@ export function ShareButton({
       navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
         .then(() => {
           setIsCopied(true)
-          setTimeout(() => setIsCopied(false), 2000)
+          // Clear any existing timeout
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+          }
+          timeoutRef.current = setTimeout(() => {
+            setIsCopied(false)
+            timeoutRef.current = null
+          }, 2000)
         })
         .catch(() => {
           // Fallback for older browsers
@@ -60,15 +84,22 @@ export function ShareButton({
           document.execCommand('copy')
           document.body.removeChild(textArea)
           setIsCopied(true)
-          setTimeout(() => setIsCopied(false), 2000)
+          // Clear any existing timeout
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+          }
+          timeoutRef.current = setTimeout(() => {
+            setIsCopied(false)
+            timeoutRef.current = null
+          }, 2000)
         })
     }
   }
 
   const buttonClasses = {
-    primary: 'px-6 py-3 bg-gradient-to-r from-gradient-start to-primary text-white rounded-full font-bold shadow-button hover:shadow-lg transition-all flex items-center gap-2',
-    secondary: 'px-6 py-3 bg-white border-2 border-primary text-primary rounded-full font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2',
-    icon: 'w-12 h-12 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center'
+    primary: 'min-h-[44px] px-6 py-3 bg-gradient-to-r from-gradient-start to-primary text-white rounded-full font-bold shadow-button hover:shadow-lg transition-all flex items-center gap-2 touch-manipulation',
+    secondary: 'min-h-[44px] px-6 py-3 bg-white border-2 border-primary text-primary rounded-full font-bold hover:bg-primary hover:text-white transition-all flex items-center gap-2 touch-manipulation',
+    icon: 'min-w-[44px] min-h-[44px] w-12 h-12 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all flex items-center justify-center touch-manipulation'
   }
 
   return (

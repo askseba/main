@@ -31,14 +31,14 @@ export function FilterTabs({
             onClick={() => onTabChange(tab.id)}
             aria-label={`عرض ${tab.label}`}
             aria-pressed={isActive}
-            className={`flex items-center gap-2 px-4 h-9 rounded-full font-medium text-sm whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+            className={`min-h-[44px] min-w-[44px] flex items-center gap-2 px-5 py-3 rounded-full font-medium text-sm whitespace-nowrap transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
               isActive
                 ? 'bg-primary text-white shadow-md shadow-primary/20'
                 : 'bg-white dark:bg-surface-dark border border-stone-200 dark:border-stone-800 text-slate-700 dark:text-text-muted hover:text-primary dark:hover:text-white active:bg-stone-100 dark:active:bg-stone-800'
             }`}
           >
             {tab.icon && (
-              <span className="material-symbols-outlined text-[18px]">
+              <span className="material-symbols-outlined text-lg">
                 {tab.icon}
               </span>
             )}

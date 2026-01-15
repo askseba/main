@@ -125,9 +125,9 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                 }}
                 className={`
                   p-6 rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2
-                  transition-all duration-300 min-h-[120px] text-right
+                  transition-all duration-300 min-h-[120px] text-right touch-manipulation
                   ${allergy.level1.includes(id)
-                    ? 'bg-red-50 border-4 border-[#ef4444] shadow-2xl ring-2 ring-red-200'
+                    ? 'bg-red-50 border-4 border-danger-red shadow-2xl ring-2 ring-red-200'
                     : 'bg-white border-2 border-cream/50 hover:border-text-dark/30 hover:bg-cream/50'
                   }
                 `}
@@ -135,7 +135,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="text-3xl mb-3">{icon}</div>
-                <h3 className="font-bold text-text-dark text-lg mb-2 leading-tight">{title}</h3>
+                <h3 className="font-bold text-text-dark text-xl md:text-2xl mb-2 leading-tight">{title}</h3>
                 <p className="text-sm text-text-dark/70">{desc}</p>
               </motion.button>
             ))}
@@ -166,9 +166,9 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                 }}
                 className={`
                   p-8 rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2
-                  aspect-square flex flex-col items-center justify-center
+                  aspect-square flex flex-col items-center justify-center touch-manipulation
                   ${allergy.level2.includes(id)
-                    ? 'bg-red-50 border-4 border-[#ef4444]'
+                    ? 'bg-red-50 border-4 border-danger-red'
                     : 'bg-white border-2 border-cream/50 hover:border-text-dark/30'
                   }
                 `}
@@ -176,7 +176,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="text-4xl mb-4">{icon}</div>
-                <h3 className="font-bold text-text-dark text-lg">{name}</h3>
+                <h3 className="font-bold text-text-dark text-xl md:text-2xl">{name}</h3>
                 <p className="text-xs text-text-dark/60 mt-1">{examples}</p>
               </motion.button>
             ))}
@@ -209,10 +209,10 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
                   }
                 }}
                 className={`
-                  px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all
+                  min-h-[44px] min-w-[44px] px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all touch-manipulation
                   flex items-center gap-2 font-medium
                   ${allergy.level3.includes(id)
-                    ? 'bg-red-50 border-2 border-[#ef4444] text-[#ef4444]'
+                    ? 'bg-red-50 border-2 border-danger-red text-danger-red'
                     : 'bg-white border-2 border-cream/50 text-text-dark hover:border-text-dark/30'
                   }
                 `}
@@ -235,7 +235,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
         <button
           onClick={onBack}
           aria-label="العودة للخطوة السابقة"
-          className="px-8 py-3 text-text-dark border-2 border-text-dark rounded-2xl font-bold hover:bg-text-dark hover:text-white transition-all flex-1 md:flex-none flex items-center justify-center"
+          className="min-h-[44px] px-8 py-3 text-text-dark border-2 border-text-dark rounded-2xl font-bold hover:bg-text-dark hover:text-white transition-all flex-1 md:flex-none flex items-center justify-center touch-manipulation"
         >
           <ChevronRight className="w-5 h-5 inline ms-2 rtl:rotate-180" aria-hidden="true" />
           رجوع
@@ -253,7 +253,7 @@ export function Step3Allergy({ allergy, updateAllergy, onNext, onBack }: Allergy
           disabled={!canNext}
           aria-label={currentLevel === 3 ? 'حفظ بصمة العطر' : 'الانتقال للخطوة التالية'}
           aria-disabled={!canNext}
-          className="px-8 py-3 bg-gradient-to-l from-gauge-safe to-emerald-600 text-white rounded-2xl font-bold shadow-xl hover:shadow-2xl hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-1 md:flex-none flex items-center justify-center"
+          className="min-h-[44px] px-8 py-3 bg-gradient-to-l from-gauge-safe to-emerald-600 text-white rounded-2xl font-bold shadow-xl hover:shadow-2xl hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex-1 md:flex-none flex items-center justify-center touch-manipulation"
         >
           {currentLevel === 3 ? 'حفظ بصمتي' : 'التالي'}
           {currentLevel < 3 && <ChevronLeft className="w-5 h-5 inline me-2 rtl:rotate-180" aria-hidden="true" />}

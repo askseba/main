@@ -1,7 +1,7 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BarChart3, Check } from 'lucide-react'
-import { useQuiz } from '@/contexts/QuizContext'
+import { useFavorites } from '@/hooks/useFavorites'
 
 interface PerfumeCardProps {
   id?: string
@@ -33,28 +33,27 @@ export function PerfumeCard({
   selectionType = 'liked',
   showAddButton = true
 }: PerfumeCardProps) {
-  const { data, setStep } = useQuiz()
-  const [isAdded, setIsAdded] = useState(() => {
-    // Check if perfume is already in liked list
-    return id ? data.step1_liked.includes(id) : false
-  })
+  const { favorites, isFavorite, toggleFavorite, isLoading } = useFavorites()
+  const [isAdded, setIsAdded] = useState(false)
+
+  // Update isAdded state when favorite status changes (including cross-tab updates)
+  useEffect(() => {
+    if (id) {
+      setIsAdded(isFavorite(id))
+    }
+  }, [id, favorites, isFavorite])
 
   // Handle "Add to Analysis" button click
-  const handleAddToAnalysis = (e: React.MouseEvent) => {
+  const handleAddToAnalysis = async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click event
     
-    if (!id) return
+    if (!id || isLoading) return
     
-    if (isAdded) {
-      // Remove from liked list
-      const newLiked = data.step1_liked.filter(pId => pId !== id)
-      setStep('step1_liked', newLiked)
-      setIsAdded(false)
-    } else {
-      // Add to liked list
-      const newLiked = [...data.step1_liked, id]
-      setStep('step1_liked', newLiked)
-      setIsAdded(true)
+    try {
+      await toggleFavorite(id)
+      // isAdded will be updated via useEffect when isFavorite changes
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
     }
   }
   // Analytical badge based on matchPercentage
@@ -141,10 +140,10 @@ export function PerfumeCard({
 
       {/* Selected Indicator */}
       {isSelected && (
-        <div className={`absolute top-4 right-4 z-30 w-8 h-8 rounded-full flex items-center justify-center shadow-lg ${
+        <div className={`absolute top-4 right-4 z-30 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center shadow-lg touch-manipulation ${
           selectionType === 'liked' ? 'bg-green-500' : 'bg-red-500'
         }`}>
-          <span className="text-white text-sm font-bold">
+          <span className="text-white text-base font-bold">
             {selectionType === 'liked' ? '✅' : '❌'}
           </span>
         </div>
@@ -173,7 +172,7 @@ export function PerfumeCard({
           </svg>
           <span className="text-sm font-bold text-white leading-none">{matchPercentage}%</span>
         </div>
-        <span className="text-[10px] font-bold text-brown-text/70 uppercase tracking-wider">تطابق</span>
+        <span className="text-xs font-bold text-brown-text/85 uppercase tracking-wider">تطابق</span>
       </div>
 
       {/* Image */}
@@ -195,20 +194,20 @@ export function PerfumeCard({
         {/* Analytical Badge (based on matchPercentage) */}
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border ${analyticalBadge.bg} ${analyticalBadge.border} backdrop-blur-sm`}>
-            <span className={`text-[16px] ${analyticalBadge.color}`}>
+            <span className={`text-base ${analyticalBadge.color}`}>
               {analyticalBadge.emoji}
             </span>
             <span className={`text-xs font-medium ${analyticalBadge.color}`}>
               {analyticalBadge.label}
             </span>
           </div>
-          <span className="text-[#b0720a] text-sm font-bold tracking-wide">{brand}</span>
+          <span className="text-brand-gold-darker text-sm font-bold tracking-wide">{brand}</span>
         </div>
 
         {/* Title */}
         <div className="flex flex-col gap-1">
           <h3 className="text-2xl font-bold text-brown-text leading-tight line-clamp-2 overflow-hidden">{title}</h3>
-          <p className="text-brown-text/70 text-sm line-clamp-2 leading-relaxed">{description}</p>
+          <p className="text-brown-text/85 text-sm line-clamp-2 leading-relaxed">{description}</p>
         </div>
 
         <div className="h-px w-full bg-brown-text/10 my-1"></div>
@@ -218,14 +217,20 @@ export function PerfumeCard({
           <div className="flex items-center justify-center mt-1">
             <button 
               onClick={handleAddToAnalysis}
-              className={`flex-1 h-12 rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 ${
+              disabled={isLoading}
+              className={`flex-1 min-h-[44px] rounded-full font-bold text-base flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation ${
                 isAdded 
                   ? 'bg-green-500 hover:bg-green-600 text-white shadow-[0_4px_12px_rgba(34,197,94,0.3)]'
-                  : 'bg-primary hover:bg-primary/90 text-[#291d12] shadow-[0_4px_12px_rgba(236,156,19,0.3)]'
+                  : 'bg-primary hover:bg-primary/90 text-brand-brown-dark shadow-[0_4px_12px_rgba(236,156,19,0.3)]'
               }`}
               aria-label={isAdded ? 'إزالة من التحليل' : 'أضف للتحليل'}
             >
-              {isAdded ? (
+              {isLoading ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>جاري...</span>
+                </>
+              ) : isAdded ? (
                 <>
                   <Check className="w-5 h-5" />
                   <span>تمت الإضافة ✓</span>
@@ -244,7 +249,7 @@ export function PerfumeCard({
         {config.isLowMatch && (
           <div className="mt-2 p-3 bg-orange-50 border border-orange-200 rounded-xl">
             <div className="flex items-start gap-2">
-              <span className="text-[18px]">💡</span>
+              <span className="text-lg">💡</span>
               <p className="text-xs text-orange-800 leading-relaxed">
                 ذوقك فريد جداً. جرب تغيير بعض التفضيلات لرؤية اقتراحاتنا المميزة.
               </p>

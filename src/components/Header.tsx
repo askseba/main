@@ -6,10 +6,15 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { User, Heart, LogOut } from 'lucide-react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { useFavorites } from '@/hooks/useFavorites'
+import { useQuiz } from '@/contexts/QuizContext'
+import { clearAllUserData } from '@/lib/clear-user-data'
 
 export function Header() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { favorites } = useFavorites()
+  const { clearQuiz } = useQuiz()
 
   const handleFavoritesClick = () => {
     if (status === 'loading') return
@@ -23,10 +28,8 @@ export function Header() {
     }
   }
 
-  // Check if guest has favorites in localStorage
-  const hasGuestFavorites = typeof window !== 'undefined' &&
-    status === 'unauthenticated' &&
-    JSON.parse(localStorage.getItem('guestFavorites') || '[]').length > 0
+  // Check if user has favorites (works for both guest and authenticated)
+  const hasFavorites = favorites.length > 0
 
   return (
     <header
@@ -79,6 +82,9 @@ export function Header() {
                     <DropdownMenu.Item
                       className="flex items-center gap-3 px-4 py-3 rounded-xl text-right text-red-600 hover:bg-red-50 cursor-pointer outline-none focus:bg-red-50"
                       onSelect={async () => {
+                        // Clear all user data before signOut
+                        clearQuiz()
+                        clearAllUserData()
                         await signOut({ callbackUrl: '/' })
                       }}
                     >
@@ -120,12 +126,12 @@ export function Header() {
           >
             <Heart
               className={`w-5 h-5 text-brown-text ${
-                (status === 'authenticated' || hasGuestFavorites) ? 'fill-red-500 text-red-500' : ''
+                hasFavorites ? 'fill-red-500 text-red-500' : ''
               }`}
             />
 
-            {/* Indicator for guest with favorites */}
-            {hasGuestFavorites && (
+            {/* Indicator for user with favorites */}
+            {hasFavorites && (
               <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
             )}
 

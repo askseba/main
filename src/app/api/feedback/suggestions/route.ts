@@ -42,25 +42,41 @@ export async function GET() {
       },
     })
 
-    const formattedSuggestions = suggestions.map((s) => ({
+    // Ensure suggestions is an array
+    const suggestionsArray = Array.isArray(suggestions) ? suggestions : []
+    
+    const formattedSuggestions = suggestionsArray.map((s) => ({
       id: s.id,
       title: s.title,
       description: s.description,
       publicStatus: s.publicStatus || 'planned',
-      votes: s._count.votes,
-      hasVoted: s.votes.length > 0,
+      votes: s._count?.votes ?? 0,
+      hasVoted: Array.isArray(s.votes) && s.votes.length > 0,
       userId: s.userId,
       isMine: s.userId === userId,
       category: s.category || 'general',
     }))
 
+    // Ensure formattedSuggestions is an array
+    const formattedArray = Array.isArray(formattedSuggestions) ? formattedSuggestions : []
+    const doneCountNum = typeof doneCount === 'number' ? doneCount : 0
+
     return NextResponse.json({
-      suggestions: formattedSuggestions,
-      doneCount,
+      success: true,
+      suggestions: formattedArray,
+      doneCount: doneCountNum,
     })
   } catch (error) {
     console.error('Error fetching suggestions:', error)
-    return NextResponse.json({ error: 'Failed to fetch suggestions' }, { status: 500 })
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'فشل تحميل الاقتراحات',
+        suggestions: [],
+        doneCount: 0
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -98,13 +114,21 @@ export async function POST(request: Request) {
       },
     })
 
+    // Ensure suggestion is an object
+    const suggestionObj = suggestion && typeof suggestion === 'object' && !Array.isArray(suggestion)
+      ? suggestion
+      : null
+
     return NextResponse.json({
       success: true,
-      suggestion,
+      suggestion: suggestionObj,
       message: 'تم إرسال اقتراحك بنجاح! سيتم مراجعته قريباً.',
     })
   } catch (error) {
     console.error('Error creating suggestion:', error)
-    return NextResponse.json({ error: 'Failed to create suggestion' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: 'فشل إنشاء الاقتراح' },
+      { status: 500 }
+    )
   }
 }

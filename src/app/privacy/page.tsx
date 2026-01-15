@@ -12,12 +12,12 @@ export default function PrivacyPage() {
   const [activeSection, setActiveSection] = useState<string | null>(null)
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F2F0EB] text-[#5B4233]">
+    <div dir="rtl" className="min-h-screen bg-cream-bg text-brand-brown">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Back Button */}
         <Link 
           href="/profile" 
-          className="flex items-center gap-2 text-[#5B4233] mb-6 hover:text-[#c0841a] transition-colors"
+          className="flex items-center gap-2 text-brand-brown mb-6 hover:text-brand-gold transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>الرجوع للملف الشخصي</span>
@@ -28,15 +28,15 @@ export default function PrivacyPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-[#F2F0EB] py-12 px-6 text-center mb-8"
+          className="bg-cream-bg py-12 px-6 text-center mb-8"
         >
-          <h1 className="text-[33.6px] font-bold mb-4 text-[#5B4233]">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-brand-brown">
             {data.hero.title}
           </h1>
-          <p className="text-xl font-bold mb-2 text-[#5B4233]/80">
+          <p className="text-xl font-bold mb-2 text-brand-brown/80">
             {data.hero.subtitle}
           </p>
-          <p className="text-sm text-[#5B4233]/60">
+          <p className="text-sm text-brand-brown/60">
             آخر تحديث: {data.hero.last_updated}
           </p>
         </motion.section>
@@ -48,9 +48,9 @@ export default function PrivacyPage() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="sticky top-8 bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-[#5B4233]/20"
+              className="sticky top-8 bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-brand-brown/20"
             >
-              <h3 className="text-lg font-bold mb-4 text-[#5B4233]">جدول المحتويات</h3>
+              <h3 className="text-xl md:text-2xl font-bold mb-4 text-brand-brown">جدول المحتويات</h3>
               <nav className="space-y-2">
                 {data.sections.map((section, idx) => (
                   <button
@@ -58,8 +58,8 @@ export default function PrivacyPage() {
                     onClick={() => setActiveSection(activeSection === section.id ? null : section.id)}
                     className={`w-full text-right px-4 py-2 rounded-xl text-sm transition-colors ${
                       activeSection === section.id
-                        ? 'bg-[#c0841a]/20 text-[#c0841a] font-bold'
-                        : 'text-[#5B4233]/70 hover:bg-[#c0841a]/10 hover:text-[#5B4233]'
+                        ? 'bg-brand-gold/20 text-brand-gold font-bold'
+                        : 'text-brand-brown/70 hover:bg-brand-gold/10 hover:text-brand-brown'
                     }`}
                   >
                     {section.title}
@@ -77,12 +77,12 @@ export default function PrivacyPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="bg-[#c0841a]/10 border-2 border-[#c0841a] rounded-3xl p-6 mb-8"
+          className="bg-brand-gold/10 border-2 border-brand-gold rounded-3xl p-6 mb-8"
         >
-          <h3 className="text-xl font-bold mb-4 text-[#5B4233]">ملخص سريع</h3>
+          <h3 className="text-2xl md:text-3xl font-bold mb-4 text-brand-brown">ملخص سريع</h3>
           {data.summaryBullets.map((bullet, idx) => (
             <div key={idx} className="flex gap-3 items-start mb-4 last:mb-0">
-              <Shield className="w-5 h-5 text-[#c0841a] mt-1 flex-shrink-0" />
+              <Shield className="w-5 h-5 text-brand-gold mt-1 flex-shrink-0" />
               <p className="text-base">{bullet}</p>
             </div>
           ))}
@@ -106,15 +106,15 @@ export default function PrivacyPage() {
               <Accordion.Item
                 key={section.id}
                 value={section.id}
-                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl border border-[#5B4233]/20 mb-2 overflow-hidden"
+                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl border border-brand-brown/20 mb-2 overflow-hidden"
               >
                 <Accordion.Header>
-                  <Accordion.Trigger className="w-full px-6 py-4 flex justify-between items-center text-base font-bold text-[#5B4233] hover:bg-[#c0841a]/50 transition-colors text-right">
+                  <Accordion.Trigger className="w-full px-6 py-4 flex justify-between items-center text-base font-bold text-brand-brown hover:bg-brand-gold/50 transition-colors text-right">
                     <span>{section.title}</span>
                     <ChevronDown className="w-5 h-5 flex-shrink-0 transition-transform duration-300 data-[state=open]:rotate-180" />
                   </Accordion.Trigger>
                 </Accordion.Header>
-                <Accordion.Content className="px-6 pb-4 text-base text-[#5B4233]/80 overflow-hidden text-right">
+                <Accordion.Content className="px-6 pb-4 text-base text-brand-brown/80 overflow-hidden text-right">
                   <div className="py-2 space-y-2">
                     {section.content.map((paragraph, pIdx) => (
                       <p key={pIdx} className="whitespace-pre-line">{paragraph}</p>
@@ -131,7 +131,7 @@ export default function PrivacyPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-[#5B4233]/20 mb-8"
+          className="bg-white/90 backdrop-blur-sm shadow-lg rounded-3xl p-6 border border-brand-brown/20 mb-8"
         >
           <div className="flex gap-3 items-center mb-3">
             <Mail className="w-6 h-6 text-[#c0841a]" />
@@ -154,7 +154,7 @@ export default function PrivacyPage() {
           className="bg-green-50/10 border-2 border-green-200 rounded-3xl p-6 text-center"
         >
           <Shield className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <h3 className="text-lg font-bold mb-2">{data.compliance.title}</h3>
+          <h3 className="text-xl md:text-2xl font-bold mb-2">{data.compliance.title}</h3>
           <div className="flex gap-2 justify-center mb-3 flex-wrap">
             {data.compliance.standards.map((standard, idx) => (
               <span 

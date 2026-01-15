@@ -6,6 +6,8 @@ import { PWARegister } from "@/components/PWARegister";
 import { SessionProvider } from "@/components/SessionProvider";
 import { QuizProvider } from "@/contexts/QuizContext";
 import { ConditionalLayout } from "@/components/ConditionalLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { NetworkStatusToast } from "@/components/NetworkStatusToast";
 
 const notoSansArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
@@ -72,7 +74,7 @@ export const metadata: Metadata = {
 
 export function generateViewport(): Viewport {
   return {
-    themeColor: "#c0841a",
+    themeColor: "#c0841a", // Using brand-gold color
     width: "device-width",
     initialScale: 1,
     viewportFit: "cover",
@@ -89,25 +91,28 @@ export default function RootLayout({
       <body
         className={`${notoSansArabic.className} antialiased`}
       >
-        <SessionProvider>
-          <QuizProvider>
-            <ConditionalLayout>
-              {children}
-            </ConditionalLayout>
-            <Toaster 
-              position="top-center" 
-              richColors={false}
-              toastOptions={{
-                duration: 3500,
-                style: {
-                  direction: 'rtl',
-                  textAlign: 'right'
-                }
-              }}
-            />
-            <PWARegister />
-          </QuizProvider>
-        </SessionProvider>
+        <ErrorBoundary>
+          <SessionProvider>
+            <QuizProvider>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
+              <Toaster 
+                position="top-center" 
+                richColors={false}
+                toastOptions={{
+                  duration: 3500,
+                  style: {
+                    direction: 'rtl',
+                    textAlign: 'right'
+                  }
+                }}
+              />
+              <NetworkStatusToast />
+              <PWARegister />
+            </QuizProvider>
+          </SessionProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

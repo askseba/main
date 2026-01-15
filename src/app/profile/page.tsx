@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   User, 
   Heart, 
@@ -20,10 +20,46 @@ import { signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { useQuiz } from '@/contexts/QuizContext';
+import { clearAllUserData } from '@/lib/clear-user-data';
+import { safeFetch, validateObject } from '@/lib/utils/api-helpers';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+
+// Error Toast Component with cleanup
+function ErrorToast({ error, onClose }: { error: string; onClose: () => void }) {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear error after 4 seconds
+    timeoutRef.current = setTimeout(() => {
+      onClose();
+    }, 4000);
+
+    // Cleanup: clear timeout when component unmounts or error changes
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [error, onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl shadow-2xl z-50 max-w-sm text-center text-sm font-medium border border-red-400/50"
+    >
+      {error}
+    </motion.div>
+  );
+}
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
   const router = useRouter();
+  const { clearQuiz } = useQuiz();
+  const { isOnline } = useNetworkStatus();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState('');
@@ -49,6 +85,12 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check network status before uploading
+    if (!isOnline) {
+      setError('لا يوجد اتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مرة أخرى.');
+      return;
+    }
+
     // التحقق من الشروط
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setError('الصورة غير صالحة، يرجى اختيار صورة بصيغة JPG أو PNG أو WEBP وبحجم لا يتجاوز 2MB.');
@@ -73,21 +115,27 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/avatar', {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await safeFetch<{ success: boolean; avatarUrl?: string; error?: string }>(
+        '/api/avatar',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-      if (response.ok) {
-        const { avatarUrl } = await response.json();
+      if (response.success && response.avatarUrl) {
+        // Validate avatarUrl is a string
+        if (typeof response.avatarUrl !== 'string') {
+          throw new Error('رابط الصورة غير صحيح')
+        }
         
         // تحديث Session
-        await update({ image: avatarUrl });
+        await update({ image: response.avatarUrl });
         
         // تحديث localStorage أو revalidatePath
         setImagePreview(null);
       } else {
-        throw new Error('فشل الرفع');
+        throw new Error(response.error || 'فشل الرفع');
       }
     } catch (err) {
       setError('حدث خطأ أثناء رفع الصورة. جرب مرة أخرى.');
@@ -127,20 +175,21 @@ export default function ProfilePage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="absolute bottom-1 right-1 bg-primary/90 hover:bg-primary text-white p-2 rounded-full border-2 border-white shadow-lg transition-all group-hover:scale-110 disabled:opacity-50"
+              className="absolute bottom-1 right-1 min-w-[44px] min-h-[44px] bg-primary/90 hover:bg-primary text-white p-3 rounded-full border-2 border-white shadow-lg transition-all group-hover:scale-110 disabled:opacity-50 touch-manipulation"
               title="رفع صورة جديدة"
             >
               {isUploading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <Camera size={14} />
+                <Camera size={18} />
               )}
             </button>
           </div>
 
-          <h1 className="mt-4 text-xl font-bold text-brown leading-tight">{userName}</h1>
+          <h1 className="mt-4 text-2xl md:text-3xl font-bold text-brown leading-tight">{userName}</h1>
           <div className="relative w-full group/bio">
             <textarea
+              autoComplete="off"
               value={optimisticBio}
               onChange={(e) => setOptimisticBio(e.target.value)}
               onBlur={async (e) => {
@@ -153,7 +202,7 @@ export default function ProfilePage() {
               rows={2}
             />
             <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-hover/bio:opacity-100 transition-opacity pointer-events-none">
-              <span className="text-[10px] text-brown/40 bg-white/80 px-2 py-0.5 rounded-full border border-brown/10 shadow-sm whitespace-nowrap">
+              <span className="text-xs text-brown/40 bg-white/80 px-2 py-0.5 rounded-full border border-brown/10 shadow-sm whitespace-nowrap">
                 يتم الحفظ تلقائياً عند الخروج ✨
               </span>
             </div>
@@ -171,7 +220,7 @@ export default function ProfilePage() {
               key={item.id}
               href={item.href}
               className={cn(
-                "flex items-center justify-between p-5 hover:bg-amber-50/50 transition-all group relative group",
+                "min-h-[44px] flex items-center justify-between p-5 hover:bg-amber-50/50 transition-all group relative group touch-manipulation",
                 index !== menuItems.length - 1 && "border-b border-brown/5"
               )}
             >
@@ -197,7 +246,7 @@ export default function ProfilePage() {
       <div className="px-6 mt-8">
         <button
           onClick={openEmail}
-          className="w-full bg-gradient-to-r from-primary to-amber-600 text-white rounded-3xl p-5 flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all font-semibold text-base"
+          className="min-h-[44px] w-full bg-gradient-to-r from-primary to-amber-600 text-white rounded-3xl p-5 flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all font-semibold text-base touch-manipulation"
         >
           <MessageCircle size={24} />
           <span>تواصل مع فريق صبا</span>
@@ -208,10 +257,13 @@ export default function ProfilePage() {
       <div className="px-6 mt-12 pb-8">
         <button 
           onClick={async () => {
-            await signOut({ callbackUrl: '/' });
-            router.push('/');
+            // Clear all user data before signOut
+            clearQuiz()
+            clearAllUserData()
+            await signOut({ callbackUrl: '/' })
+            router.push('/')
           }}
-          className="w-full flex items-center justify-center gap-3 text-brown/70 hover:text-red-500 hover:bg-brown/5 rounded-2xl p-4 font-medium transition-all"
+          className="min-h-[44px] w-full flex items-center justify-center gap-3 text-brown/70 hover:text-red-500 hover:bg-brown/5 rounded-2xl p-4 font-medium transition-all touch-manipulation"
         >
           <LogOut size={20} />
           <span>تسجيل الخروج</span>
@@ -219,7 +271,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Footer */}
-      <div className="text-center text-[11px] text-brown/40 mt-6 pb-6">
+      <div className="text-center text-xs text-brown/40 mt-6 pb-6">
         نسخة التطبيق 2.3.1<br />
         صنع بكل حب في السعودية 🇸🇦
       </div>
@@ -236,15 +288,10 @@ export default function ProfilePage() {
       {/* Error Toast */}
       <AnimatePresence>
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl shadow-2xl z-50 max-w-sm text-center text-sm font-medium border border-red-400/50"
-            onAnimationEnd={() => setTimeout(() => setError(''), 4000)}
-          >
-            {error}
-          </motion.div>
+          <ErrorToast 
+            error={error} 
+            onClose={() => setError('')} 
+          />
         )}
       </AnimatePresence>
     </div>

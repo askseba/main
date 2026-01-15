@@ -38,9 +38,12 @@ export async function POST(request: NextRequest) {
       access: 'public',
     });
 
+    // Ensure url is a string
+    const avatarUrl = typeof url === 'string' ? url : ''
+
     return NextResponse.json({ 
       success: true, 
-      avatarUrl: url,
+      avatarUrl,
       message: 'تم رفع الصورة بنجاح!' 
     });
 

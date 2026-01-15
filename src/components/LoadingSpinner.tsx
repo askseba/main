@@ -74,7 +74,7 @@ export function LoadingSpinner({
           <div className="h-full bg-gradient-to-r from-gradient-start to-primary rounded-full animate-pulse" style={{ width: '60%' }} />
         </div>
         {message && (
-          <p className="text-sm text-brown-text/70">{message}</p>
+          <p className="text-sm text-brown-text/85">{message}</p>
         )}
       </div>
     )

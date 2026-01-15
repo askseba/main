@@ -14,7 +14,7 @@ export function Footer() {
             <h3 className="text-brown-text font-semibold mb-4">قصتنا</h3>
             <Link
               href="/about"
-              className="block text-brown-text/70 hover:text-primary transition-colors mb-2"
+              className="min-h-[44px] block text-brown-text/85 hover:text-primary transition-colors mb-2 touch-manipulation"
             >
               قصتنا في Ask Seba
             </Link>
@@ -25,7 +25,7 @@ export function Footer() {
             <h3 className="text-brown-text font-semibold mb-4">تساؤلات تهمك</h3>
             <Link
               href="/faq"
-              className="block text-brown-text/70 hover:text-primary transition-colors mb-2"
+              className="min-h-[44px] block text-brown-text/85 hover:text-primary transition-colors mb-2 touch-manipulation"
             >
               الأسئلة الشائعة
             </Link>
@@ -36,7 +36,7 @@ export function Footer() {
             <h3 className="text-brown-text font-semibold mb-4">الخصوصية</h3>
             <Link
               href="/privacy"
-              className="block text-brown-text/70 hover:text-primary transition-colors mb-2"
+              className="min-h-[44px] block text-brown-text/85 hover:text-primary transition-colors mb-2 touch-manipulation"
             >
               سياسة الخصوصية
             </Link>
@@ -47,7 +47,7 @@ export function Footer() {
             <h3 className="text-brown-text font-semibold mb-4">تواصل معنا</h3>
             <a
               href="mailto:support@askseba.com"
-              className="flex items-center gap-2 text-brown-text/70 hover:text-primary transition-colors mb-2"
+              className="min-h-[44px] min-w-[44px] flex items-center gap-2 text-brown-text/85 hover:text-primary transition-colors mb-2 touch-manipulation"
             >
               <Mail className="w-4 h-4" />
               <span>support@askseba.com</span>
@@ -57,7 +57,7 @@ export function Footer() {
                 href="https://twitter.com/askseba"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-brown-text/70 hover:text-primary transition-colors"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-brown-text/85 hover:text-primary transition-colors touch-manipulation"
                 aria-label="تابعنا على تويتر"
               >
                 <Twitter className="w-5 h-5" />
@@ -66,7 +66,7 @@ export function Footer() {
                 href="https://instagram.com/askseba"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-brown-text/70 hover:text-primary transition-colors"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-brown-text/85 hover:text-primary transition-colors touch-manipulation"
                 aria-label="تابعنا على إنستغرام"
               >
                 <Instagram className="w-5 h-5" />
@@ -77,7 +77,7 @@ export function Footer() {
 
         {/* Bottom Section */}
         <div className="border-t border-brown-text/10 pt-6 text-center">
-          <p className="text-brown-text/60 text-sm">
+          <p className="text-brown-text/75 text-sm">
             © {new Date().getFullYear()} Ask Seba. جميع الحقوق محفوظة.
           </p>
           <p className="text-brown-text/40 text-xs mt-2">

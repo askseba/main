@@ -35,7 +35,7 @@ export default function Home() {
             {/* Logo */}
             <motion.div variants={itemVariants} className="mb-8 md:mb-12">
               {/* FIX: Brand consistency - Always "Ask Seba" */}
-              <h1 className="font-serif italic text-5xl md:text-[72px] font-black text-brown-text leading-none tracking-tight">
+              <h1 className="font-serif italic text-5xl md:text-7xl font-black text-brown-text leading-none tracking-tight">
                 Ask Seba
               </h1>
             </motion.div>
@@ -43,7 +43,7 @@ export default function Home() {
             {/* Main Title */}
             <motion.h2 
               variants={itemVariants}
-              className="font-bold text-4xl md:text-[48px] text-brown-text mb-6 md:mb-8 leading-tight"
+              className="font-bold text-4xl md:text-5xl text-brown-text mb-6 md:mb-8 leading-tight"
             >
               اكتشف عطرك المثالي في ٣ دقائق
             </motion.h2>
@@ -51,7 +51,7 @@ export default function Home() {
             {/* Subtitle */}
             <motion.p 
               variants={itemVariants}
-              className="text-lg md:text-xl text-brown-text/70 mb-10 md:mb-12 max-w-2xl mx-auto leading-relaxed"
+              className="text-lg md:text-xl text-brown-text/85 mb-10 md:mb-12 max-w-2xl mx-auto leading-relaxed"
             >
               اختبار علمي ذكي يحلل شخصيتك ويفضل لك العطور المثالية من آلاف الخيارات العالمية
             </motion.p>
@@ -72,7 +72,7 @@ export default function Home() {
             {/* Trust Indicators */}
             <motion.div 
               variants={itemVariants}
-              className="flex flex-col sm:flex-row gap-6 justify-center items-center text-sm text-brown-text/60"
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center text-sm text-brown-text/75"
             >
               <div className="flex items-center gap-2">
                 <span className="w-6 h-6 bg-safe-green rounded-full" />
@@ -100,7 +100,7 @@ export default function Home() {
             <h3 className="font-bold text-3xl md:text-4xl text-brown-text mb-4">
               أفضل العطور المُوصى بها
             </h3>
-            <p className="text-lg text-brown-text/60 max-w-2xl mx-auto">
+            <p className="text-lg text-brown-text/75 max-w-2xl mx-auto">
               ابدأ رحلتك مع هذه التحف الفاخرة المختارة خصيصًا
             </p>
           </motion.div>

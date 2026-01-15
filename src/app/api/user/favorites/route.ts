@@ -68,7 +68,10 @@ export async function GET() {
     const session = await auth()
     
     if (!session?.user?.id) {
-      return NextResponse.json([], { status: 401 })
+      return NextResponse.json(
+        { success: false, error: 'غير مصرح', data: [] },
+        { status: 401 }
+      )
     }
 
     const favorites = await prisma.userFavorite.findMany({
@@ -76,9 +79,24 @@ export async function GET() {
       select: { perfumeId: true }
     })
     
-    return NextResponse.json(favorites.map(f => f.perfumeId))
+    // Ensure we return an array
+    const perfumeIds = Array.isArray(favorites) 
+      ? favorites.map(f => f.perfumeId).filter((id): id is string => typeof id === 'string')
+      : []
+    
+    return NextResponse.json({
+      success: true,
+      data: perfumeIds
+    })
   } catch (error) {
     console.error('[Favorites API GET] Error:', error)
-    return NextResponse.json([], { status: 500 })
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'حدث خطأ في الخادم',
+        data: [] 
+      },
+      { status: 500 }
+    )
   }
 }

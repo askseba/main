@@ -34,8 +34,8 @@ export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
               />
             </div>
             <div className="space-y-4 text-right">
-              <h1 className="text-4xl font-bold text-brown-text leading-tight">{perfume.name}</h1>
-              <p className="text-2xl text-brown-text/70 font-semibold">{perfume.brand}</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-brown-text leading-tight">{perfume.name}</h1>
+              <p className="text-2xl text-brown-text/85 font-semibold">{perfume.brand}</p>
             </div>
           </div>
 

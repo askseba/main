@@ -4,6 +4,8 @@ import { DollarSign, Loader2 } from 'lucide-react'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { Button } from '@/components/ui/button'
 import { type Perfume } from '@/lib/data/perfumes'
+import { safeFetch, validateArray } from '@/lib/utils/api-helpers'
+import { toast } from 'sonner'
 
 interface PerfumeDetailCTAProps {
   perfume: Perfume
@@ -36,14 +38,30 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
   useEffect(() => {
     if (showStores && prices.length === 0 && !loading) {
       setLoading(true)
-      fetch(`/api/prices/compare?perfumeId=${perfume.id}`)
-        .then(res => res.json())
-        .then(data => {
-          setPrices(data)
-          setLoading(false)
+      safeFetch<{ success: boolean; data?: PriceData[]; total?: number; error?: string }>(
+        `/api/prices/compare?perfumeId=${perfume.id}`
+      )
+        .then((response) => {
+          if (response.success && response.data) {
+            const pricesArray = validateArray<PriceData>(
+              response.data,
+              'الأسعار يجب أن تكون مصفوفة'
+            )
+            setPrices(pricesArray)
+          } else {
+            setPrices([])
+            if (response.error) {
+              toast.error(response.error)
+            }
+          }
         })
-        .catch(err => {
+        .catch((err) => {
           console.error('Error fetching prices:', err)
+          setPrices([])
+          const errorMessage = err instanceof Error ? err.message : 'فشل تحميل الأسعار'
+          toast.error(errorMessage)
+        })
+        .finally(() => {
           setLoading(false)
         })
     }
@@ -113,7 +131,7 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
                 {loading ? (
                   <div className="p-4 text-center">
                     <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
-                    <p className="text-sm text-brown-text/60">جاري تحميل الأسعار...</p>
+                    <p className="text-sm text-brown-text/75">جاري تحميل الأسعار...</p>
                   </div>
                 ) : hasPrices ? (
                   <div className="space-y-2">
@@ -134,7 +152,7 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
                   </div>
                 ) : (
                   <div className="p-4 text-center">
-                    <p className="text-sm text-brown-text/60 mb-2">لا توجد أسعار متاحة حالياً</p>
+                    <p className="text-sm text-brown-text/75 mb-2">لا توجد أسعار متاحة حالياً</p>
                     <p className="text-xs text-brown-text/40">سيتم تحديث الأسعار قريباً</p>
                   </div>
                 )}

@@ -22,7 +22,7 @@ export function CompactPerfumeCard({
     <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5 transition-all">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-bold text-brown-text text-lg truncate">
+          <h3 className="font-bold text-brown-text text-xl md:text-2xl truncate">
             {perfume.name}
           </h3>
           {perfume.isSafe !== undefined && (
@@ -35,7 +35,7 @@ export function CompactPerfumeCard({
             </span>
           )}
         </div>
-        <p className="text-sm text-brown-text/70 truncate">{perfume.brand}</p>
+        <p className="text-sm text-brown-text/85 truncate">{perfume.brand}</p>
         {perfume.matchPercentage !== undefined && (
           <p className="text-xs text-primary font-medium mt-1">
             تطابق: {perfume.matchPercentage}%
@@ -50,7 +50,7 @@ export function CompactPerfumeCard({
         }}
         disabled={disabled}
         className={`
-          flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all
+          min-h-[44px] min-w-[44px] flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-sm transition-all touch-manipulation
           bg-primary text-white hover:bg-primary/90
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}

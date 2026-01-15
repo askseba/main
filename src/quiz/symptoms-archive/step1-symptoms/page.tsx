@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { SymptomCard } from '@/quiz/symptoms-archive/SymptomCard'
 import { SYMPTOMS } from '@/quiz/symptoms-archive/symptoms'
 import { CTAButton } from '@/components/ui/CTAButton'
+import { setStorageJSON } from '@/lib/utils/storage'
 
 export default function Step1SymptomsPage() {
   const router = useRouter()
@@ -21,9 +22,7 @@ export default function Step1SymptomsPage() {
 
   const handleNext = () => {
     // Save to localStorage or state management
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('quiz-symptoms', JSON.stringify(selectedSymptoms))
-    }
+    setStorageJSON('quiz-symptoms', selectedSymptoms)
     // Navigate to next step (adjust route as needed)
     router.push('/quiz/step2-preferences')
   }
@@ -49,7 +48,7 @@ export default function Step1SymptomsPage() {
           <h1 className="font-tajawal-bold text-4xl md:text-5xl text-brown-text mb-4">
             ما هي حالة بشرتك؟
           </h1>
-          <p className="text-xl text-brown-text/70 max-w-2xl mx-auto">
+          <p className="text-xl text-brown-text/85 max-w-2xl mx-auto">
             اختر جميع الأعراض أو الحالات التي تنطبق عليك. هذا يساعدنا في اختيار العطور الآمنة لك
           </p>
         </motion.div>
@@ -128,7 +127,7 @@ export default function Step1SymptomsPage() {
           transition={{ delay: 0.5 }}
           className="text-center mt-8"
         >
-          <p className="text-sm text-brown-text/60">
+          <p className="text-sm text-brown-text/75">
             💡 يمكنك اختيار أكثر من حالة. كلما كانت المعلومات دقيقة، كانت التوصيات أفضل
           </p>
         </motion.div>
