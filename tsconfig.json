@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "extracted_files", "modified_files", "deployment-ready"]
+  "exclude": ["node_modules", "extracted_files", "modified_files", "deployment-ready", "docs/archive", ".dev-tools-output"]
 }
