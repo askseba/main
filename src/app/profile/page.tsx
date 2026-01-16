@@ -19,7 +19,7 @@ import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation'; // Removed - no longer needed after logout fix
 import { useQuiz } from '@/contexts/QuizContext';
 import { clearAllUserData } from '@/lib/clear-user-data';
 import { safeFetch, validateObject } from '@/lib/utils/api-helpers';
@@ -57,7 +57,7 @@ function ErrorToast({ error, onClose }: { error: string; onClose: () => void }) 
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
-  const router = useRouter();
+  // const router = useRouter(); // Removed - no longer needed after logout fix
   const { clearQuiz } = useQuiz();
   const { isOnline } = useNetworkStatus();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -269,7 +269,7 @@ export default function ProfilePage() {
             clearQuiz()
             clearAllUserData()
             await signOut({ callbackUrl: '/' })
-            router.push('/')
+            // router.push('/') removed - signOut({ callbackUrl: '/' }) already handles redirect
           }}
           className="min-h-[44px] w-full flex items-center justify-center gap-3 text-brown/70 hover:text-red-500 hover:bg-brown/5 rounded-2xl p-4 font-medium transition-all touch-manipulation"
         >
