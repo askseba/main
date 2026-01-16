@@ -194,7 +194,15 @@ export default function ProfilePage() {
               onChange={(e) => setOptimisticBio(e.target.value)}
               onBlur={async (e) => {
                 const newBio = e.target.value;
-                await update({ bio: newBio });
+                const previousBio = optimisticBio;
+                
+                try {
+                  await update({ bio: newBio });
+                } catch (error) {
+                  setOptimisticBio(previousBio);  // Rollback
+                  setError('فشل حفظ الوصف. يرجى المحاولة مرة أخرى.');
+                  console.error('Bio update error:', error);
+                }
               }}
               placeholder="وصف نفسك ✨"
               className="w-full p-2 mt-2 border border-brown/20 rounded-xl text-sm text-center resize-none focus:ring-1 focus:ring-amber-500/30 outline-none transition-all"

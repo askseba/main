@@ -46,6 +46,7 @@ const performMigration = async (userId: string, guestFavorites: string[]): Promi
       const channel = new BroadcastChannel('favorites-sync')
       channel.postMessage({ 
         type: 'favorites-cleared', 
+        userId: userId, // ✅ Include userId for user isolation
         action: 'migration-complete',
         timestamp: Date.now()
       })
@@ -79,6 +80,7 @@ const performMigration = async (userId: string, guestFavorites: string[]): Promi
     const channel = new BroadcastChannel('favorites-sync')
     channel.postMessage({ 
       type: 'favorites-cleared', 
+      userId: userId, // ✅ Include userId for user isolation
       action: 'migration-complete',
       timestamp: Date.now()
     })

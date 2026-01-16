@@ -39,10 +39,11 @@ export function Header() {
       <nav className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Start (Right) - User Actions */}
         <div className="flex items-center gap-2">
-          {/* User Icon Dropdown */}
+          {/* User Icon Dropdown - THIRD in tab order */}
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button
+                tabIndex={3}
                 className="p-2 min-w-[44px] min-h-[44px] rounded-full hover:bg-primary/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label="قائمة المستخدم"
                 aria-haspopup="true"
@@ -116,8 +117,9 @@ export function Header() {
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
 
-          {/* Favorites Icon Button */}
+          {/* Favorites Icon Button - SECOND in tab order */}
           <button
+            tabIndex={2}
             onClick={handleFavoritesClick}
             disabled={status === 'loading'}
             className="p-2 min-w-[44px] min-h-[44px] rounded-full hover:bg-primary/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 relative"
@@ -143,9 +145,10 @@ export function Header() {
           </button>
         </div>
 
-        {/* End (Left) - Logo */}
+        {/* End (Left) - Logo - FIRST in tab order */}
         <Link
           href="/"
+          tabIndex={1}
           className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg hover:opacity-80 transition-opacity"
           aria-label="الصفحة الرئيسية"
         >

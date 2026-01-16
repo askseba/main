@@ -5,7 +5,9 @@ import { Suspense, useState, useMemo, useEffect, useCallback } from 'react'
 import { StatsGrid, PerfumeGrid, FilterTabs, Badge } from '@/components/ui'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Heart, ThumbsDown, Bookmark, Sparkles } from 'lucide-react'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { Button } from '@/components/ui/button'
+import { Heart, ThumbsDown, Bookmark, Sparkles, AlertTriangle } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useQuiz } from '@/contexts/QuizContext'
@@ -375,7 +377,26 @@ export default function Dashboard() {
             </p>
           )}
           <div className="flex justify-center px-2">
-            <RadarChart data={dynamicRadarData} size={400} />
+            <ErrorBoundary
+              fallback={
+                <div className="flex flex-col items-center p-8 text-center">
+                  <AlertTriangle className="w-16 h-16 text-warning-orange mb-4" />
+                  <h3 className="text-xl font-bold text-brown-text mb-2">لا يمكن عرض الرسم البياني الآن</h3>
+                  <p className="text-brown-text/75 mb-4">حدث خطأ أثناء تحميل البيانات</p>
+                  <Button
+                    onClick={() => {
+                      window.location.reload()
+                    }}
+                    variant="primary"
+                    size="lg"
+                  >
+                    إعادة المحاولة
+                  </Button>
+                </div>
+              }
+            >
+              <RadarChart data={dynamicRadarData} size={400} />
+            </ErrorBoundary>
           </div>
         </div>
       </div>

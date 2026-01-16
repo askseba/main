@@ -55,8 +55,17 @@ export function useFavorites() {
         
         // Handle favorites-cleared message (migration complete)
         if (message && message.type === 'favorites-cleared') {
-          // Clear guest favorites in all tabs (only for unauthenticated users)
-          if (status === 'unauthenticated') {
+          // ✅ FIX: Handle cleared messages with user isolation
+          if (status === 'authenticated' && session?.user?.id) {
+            // For authenticated users, only process if userId matches or is missing (migration)
+            if (message.userId && message.userId !== session.user.id) {
+              console.warn('Ignoring cross-user clear')
+              return
+            }
+            // Migration clear messages may not have userId, allow them for same user context
+            // (This is safe because migration only happens after login, so same user)
+          } else if (status === 'unauthenticated') {
+            // Clear guest favorites in all tabs (only for unauthenticated users)
             removeStorageItem('guestFavorites')
             setStep('step1_liked', [])
           }
@@ -70,9 +79,12 @@ export function useFavorites() {
         
         // Ignore messages from the same user session if authenticated
         if (status === 'authenticated' && session?.user?.id) {
-          // Only sync if it's for the same user
-          if (message.userId && message.userId !== session.user.id) {
-            return
+          // ✅ FIX: Reject cross-user OR missing userId for updates
+          if (message.type === 'favorites-updated') {
+            if (!message.userId || message.userId !== session.user.id) {
+              console.warn('Ignoring invalid userId update:', message.userId, 'vs', session.user.id)
+              return
+            }
           }
           
           // Update authenticated favorites from other tabs
