@@ -51,9 +51,21 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === "production",
   },
   reactStrictMode: true,
-  trailingSlash: true,
+  trailingSlash: false,
   output: 'standalone',
   
+  // Rewrites to handle API trailing slash
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/api/:path*/',
+          destination: '/api/:path*',
+        },
+      ],
+    }
+  },
+
   // Security & PWA Headers
   async headers() {
     return [
