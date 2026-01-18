@@ -1766,7 +1766,7 @@ return (
 
 ### Configuration
 - [tailwind.config.ts](tailwind.config.ts) - Centralized colors and typography
-- [next.config.ts](next.config.ts) - Next.js configuration
+- [next.config.ts](next.config.ts) - Next.js configuration (experimental.turbopack: false, optimizeCss: true). Dev environment uses **webpack** via `npm run dev` (package.json: "dev": "next dev --webpack")
 - [layout.tsx](src/app/layout.tsx) - Root layout with providers
 
 ### Utilities
