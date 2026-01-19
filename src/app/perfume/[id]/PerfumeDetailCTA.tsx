@@ -1,11 +1,12 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { DollarSign, Loader2 } from 'lucide-react'
+import { DollarSign, Loader2, Heart } from 'lucide-react'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { Button } from '@/components/ui/button'
 import { type Perfume } from '@/lib/data/perfumes'
 import { safeFetch, validateArray } from '@/lib/utils/api-helpers'
 import { toast } from 'sonner'
+import { useFavorites } from '@/hooks/useFavorites'
 
 interface PerfumeDetailCTAProps {
   perfume: Perfume
@@ -33,6 +34,10 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
   const [prices, setPrices] = useState<PriceData[]>([])
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Favorites hook
+  const { isFavorite, toggleFavorite, isLoading: isFavoritesLoading } = useFavorites()
+  const isInFavorites = isFavorite(perfume.id)
 
   // Fetch prices when dropdown opens
   useEffect(() => {
@@ -94,6 +99,31 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
     return price.store.affiliateUrl
   }
 
+  // Handle favorite click
+  const handleFavoriteClick = async () => {
+    try {
+      await toggleFavorite(perfume.id)
+      
+      // Toast message after successful toggle
+      const newStatus = !isInFavorites
+      toast.success(
+        newStatus ? 'تم الحفظ في المفضلة ♥️' : 'تم الحذف من المفضلة',
+        { 
+          style: { direction: 'rtl', textAlign: 'right' },
+          duration: 2000
+        }
+      )
+    } catch (error) {
+      // toast.error is automatically shown from useFavorites on network failure
+      // but we add additional error handling for other errors
+      const errorMessage = error instanceof Error ? error.message : 'حدث خطأ في حفظ المفضلة'
+      toast.error(errorMessage, {
+        style: { direction: 'rtl', textAlign: 'right' },
+        duration: 3000
+      })
+    }
+  }
+
   // Fallback to mock prices if no data
   const basePrice = perfume.price || 299
   const hasPrices = prices.length > 0
@@ -114,6 +144,31 @@ export function PerfumeDetailCTA({ perfume }: PerfumeDetailCTAProps) {
             variant="secondary"
             className="flex-1 h-12"
           />
+          
+          {/* زر المفضلة */}
+          <button
+            onClick={handleFavoriteClick}
+            disabled={isFavoritesLoading}
+            className={`
+              flex-1 h-12 rounded-2xl font-semibold text-base
+              transition-all duration-300 
+              flex items-center justify-center gap-2
+              shadow-lg hover:shadow-xl
+              disabled:opacity-50 disabled:cursor-not-allowed
+              ${isInFavorites 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-white hover:bg-gray-50 text-brown-text border-2 border-brown-text/20'
+              }
+            `}
+            aria-label={isInFavorites ? "حذف من المفضلة" : "أضف للمفضلة"}
+          >
+            <Heart 
+              className={`w-5 h-5 transition-all ${isInFavorites ? 'fill-current' : ''}`}
+            />
+            <span className="hidden sm:inline">
+              {isInFavorites ? 'في المفضلة' : 'أضف للمفضلة'}
+            </span>
+          </button>
           
           {/* قارن الأسعار Button - Prominent */}
           <div className="relative flex-1">

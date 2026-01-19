@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import { auth } from '@/auth';
-import { put } from '@vercel/blob';
+import { put, del } from '@vercel/blob';
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -45,6 +45,35 @@ export async function POST(request: NextRequest) {
       success: true, 
       avatarUrl,
       message: 'تم رفع الصورة بنجاح!' 
+    });
+
+  } catch (error) {
+    return NextResponse.json({ 
+      error: 'حدث خطأ في الخادم، جرب مرة أخرى' 
+    }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: 'غير مصرّح' }, { status: 401 });
+
+  try {
+    const avatarUrl = session.user.image;
+
+    // إذا كان هناك صورة في Vercel Blob، احذفها
+    if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.includes('blob.vercel-storage.com')) {
+      try {
+        await del(avatarUrl);
+      } catch (blobError) {
+        // لا نوقف العملية إذا فشل حذف الملف من Blob
+        console.error('Error deleting blob:', blobError);
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'تم حذف الصورة بنجاح' 
     });
 
   } catch (error) {

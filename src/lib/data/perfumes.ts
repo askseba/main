@@ -1,6 +1,8 @@
 // Unified data layer for Ask Seba PWA
 // Single source of truth for all perfume and user data
 
+import { TimelineStage } from '@/components/ui/PerfumeTimeline'
+
 export interface Perfume {
   id: string
   name: string
@@ -18,6 +20,7 @@ export interface Perfume {
   families?: string[] // e.g., ['floral', 'woody', 'citrus']
   ingredients?: string[] // e.g., ['jasmine', 'rose', 'oud']
   symptomTriggers?: string[] // e.g., ['sneeze', 'headache'] - symptoms this perfume may cause
+  stages?: TimelineStage[] // Timeline stages for perfume (top, middle, base notes)
 }
 
 export interface RadarDataPoint {
@@ -402,6 +405,46 @@ export function normalizePerfume(perfume: Perfume): Perfume {
     score,
     matchPercentage,
     status: perfume.status ?? calculateStatus(score),
-    isSafe: perfume.isSafe ?? score >= 80
+    isSafe: perfume.isSafe ?? score >= 80,
+    stages: perfume.stages ?? getDefaultStages({ 
+      ...perfume, 
+      score, 
+      status: perfume.status ?? calculateStatus(score) 
+    })
   }
+}
+
+/**
+ * إنشاء stages افتراضية للعطر بناءً على البيانات المتاحة
+ */
+export function getDefaultStages(perfume: Perfume): TimelineStage[] {
+  const baseScore = perfume.score ?? 85
+  const baseStatus = perfume.status ?? 'safe'
+  
+  // استخدام ingredients إذا موجودة، وإلا استخدم قيم افتراضية
+  const ingredients = perfume.ingredients || []
+  const topNotes = ingredients.slice(0, 3).join(' • ') || 'برغموت • فلفل • ليمون'
+  const middleNotes = ingredients.slice(3, 6).join(' • ') || 'لافندر • باتشولي • جيرانيوم'
+  const baseNotes = ingredients.slice(6, 9).join(' • ') || 'أمبروكسان • أرز • فيتيفر'
+  
+  return [
+    {
+      score: baseScore,
+      status: baseStatus,
+      stageName: 'الافتتاحية',
+      notes: topNotes
+    },
+    {
+      score: Math.max(0, baseScore - 5),
+      status: baseStatus,
+      stageName: 'القلب',
+      notes: middleNotes
+    },
+    {
+      score: Math.min(100, baseScore + 5),
+      status: baseStatus,
+      stageName: 'القاعدة',
+      notes: baseNotes
+    }
+  ]
 }

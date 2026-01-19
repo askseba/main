@@ -1,9 +1,10 @@
 import { Suspense } from 'react'
+import { notFound } from 'next/navigation'
 import { SmartImage } from '@/components/ui/SmartImage'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { SpeedometerGauge } from '@/components/ui/SpeedometerGauge'
 import { PerfumeTimeline } from '@/components/ui/PerfumeTimeline'
-import { getPerfumeById, normalizePerfume, perfumes } from '@/lib/data/perfumes'
+import { getPerfumeById, normalizePerfume } from '@/lib/data/perfumes'
 import { PerfumeDetailCTA } from './PerfumeDetailCTA'
 
 interface PerfumeDetailProps {
@@ -13,7 +14,12 @@ interface PerfumeDetailProps {
 export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
   // ✅ Server Component مع await
   const { id } = await params
-  const perfumeData = getPerfumeById(id) || perfumes[0] // Fallback to first perfume
+  const perfumeData = getPerfumeById(id)
+  
+  if (!perfumeData) {
+    notFound()
+  }
+  
   const perfume = normalizePerfume(perfumeData)
 
   return (
@@ -50,26 +56,7 @@ export default async function PerfumeDetail({ params }: PerfumeDetailProps) {
             
             <Suspense fallback={<div className="h-64 animate-pulse bg-gray-200 rounded-2xl" />}>
               <PerfumeTimeline 
-                stages={[
-                  {
-                    score: perfume.score ?? 85,
-                    status: perfume.status ?? 'safe',
-                    stageName: 'الافتتاحية',
-                    notes: 'برغموت • فلفل • ليمون'
-                  },
-                  {
-                    score: (perfume.score ?? 85) - 5,
-                    status: perfume.status ?? 'safe',
-                    stageName: 'القلب',
-                    notes: 'لافندر • باتشولي • جيرانيوم'
-                  },
-                  {
-                    score: (perfume.score ?? 85) + 5,
-                    status: perfume.status ?? 'safe',
-                    stageName: 'القاعدة',
-                    notes: 'أمبروكسان • أرز • فيتيفر'
-                  }
-                ]}
+                stages={perfume.stages ?? []}
               />
             </Suspense>
             

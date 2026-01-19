@@ -422,27 +422,91 @@
 
 ---
 
-### 1.6 Results Page (`/results`)
+### 1.6 صفحة النتائج (`/results`)
 
-**URL:** `http://localhost:3000/results`  
-**التاريخ:** 2026-01-15  
-**File:** `src/app/results/page.tsx`
+**URL:** `/results`  
+**الملف:** `src/app/results/page.tsx`  
+**النوع:** Client Component (`'use client'`)
 
-#### 📱 ما يظهر على الشاشة:
+#### 1. مصدر البيانات:
+- **QuizContext:** يوفر بيانات الاختبار
+  - `step1_liked`: IDs العطور المفضلة
+  - `step2_disliked`: IDs العطور غير المفضلة
+  - `step3_allergy`: معلومات الحساسية (أعراض، عائلات، مكونات)
 
-**Header & Footer:**
-- ✅ **Header موجود**
-- ✅ **Footer موجود**
+- **API Call:** `POST /api/match`
+  - **Body:**
+```json
+    {
+      "preferences": {
+        "likedPerfumeIds": [...],
+        "dislikedPerfumeIds": [...],
+        "allergyProfile": {
+          "symptoms": [...],
+          "families": [...],
+          "ingredients": [...]
+        }
+      }
+    }
+```
+  - **Response:**
+    - `perfumes`: قائمة العطور المقترحة مع نسبة التطابق
+    - `userScentDNA`: الحمض النووي العطري للمستخدم
+    - `hasPreferences`: هل المستخدم لديه تفضيلات
+    - `total`: إجمالي العدد
 
-**Content:**
-- Results based on quiz answers
-- Recommended perfumes grid
-- Filter options
-- "حفظ النتائج" button
+#### 2. العرض:
+- **Grid:** 2 أعمدة (موبايل) → 4 أعمدة (Desktop)
+- **كل بطاقة عطر تعرض:**
+  - صورة العطر
+  - الاسم والماركة
+  - نسبة التطابق (`finalScore`)
+  - الوصف
+  - مؤشر الأمان (`safetyScore === 100`)
+  - أزرار: مفضلة، مشاركة (مسجّل فقط)، مقارنة أسعار
 
-**Storage:**
-- Results saved to `QuizContext`
-- Guest can save favorites to `localStorage.guestFavorites`
+#### 3. الفلاتر (Client-side):
+- **بحث:** بالاسم أو الماركة
+- **نسبة التطابق:** Slider (0-100%)
+- **السعر:** Slider (100-5000 ر.س)
+- **عائلة العطر:** Checkboxes (أخشاب، شرقية، زهرية)
+
+#### 4. الترتيب:
+- أعلى تطابق (افتراضي)
+- السعر: صاعد
+- السعر: هابط
+- التقييم
+
+#### 5. Pagination:
+- **12 عطر لكل صفحة**
+- أزرار: السابق/التالي + أرقام الصفحات
+
+#### 6. Guest vs Authenticated:
+- **Guest:**
+  - المفضلة: تُحفظ في `localStorage.guestFavorites`
+  - CTA Banner: "سجّل لحفظ اقتراحاتك ♥️" → `/login?callbackUrl=/results`
+  - لا يوجد زر مشاركة
+  
+- **Authenticated:**
+  - المفضلة: `POST /api/user/favorites`
+  - زر مشاركة ظاهر
+  - لا يوجد CTA Banner
+
+#### 7. الحالات الخاصة:
+- **Loading:** صفحة كاملة مع نص "جاري حساب التوافق..."
+- **Error:** رسالة خطأ + زر "إعادة المحاولة"
+- **Empty:** "لا توجد نتائج" + زر "إعادة تعيين الفلاتر"
+- **Offline:** Toast خطأ عند محاولة حفظ مفضلة (مسجّل)
+
+#### 8. ميزات إضافية:
+- **User Scent DNA:** يُعرض تحت العنوان (أول 5 عناصر)
+- **Personalization Badge:** "نتائج مخصّصة بناءً على ذوقك العطري"
+- **Price Comparison:** زر على كل بطاقة يفتح بحث Google
+
+#### 9. Responsive & RTL:
+- ✅ Grid responsive (2/4 أعمدة)
+- ✅ فلاتر: Sidebar (Desktop) / Modal (Mobile)
+- ✅ `dir="rtl"` على كامل الصفحة
 
 ---
 
@@ -737,6 +801,80 @@
 
 ---
 
+### 1.10 صفحة تفاصيل العطر - Guest (`/perfume/[id]`)
+
+**الوصول:** من صفحة النتائج (نقر على بطاقة عطر)  
+**التجربة:** نفس Section 2.3 (لا يوجد فرق بين Guest و Authenticated)
+
+**التفاصيل الكاملة:** انظر Section 2.3
+
+---
+
+### 1.11 Custom 500 Error Page (`/500`)
+
+**URL:** `http://localhost:3000/500`  
+**التاريخ:** 2026-01-16  
+**File:** `src/app/500/page.tsx`
+
+#### 📱 ما يظهر على الشاشة:
+
+**Header & Footer:**
+- ✅ **Header موجود**
+- ✅ **Footer موجود**
+
+**Content:**
+- Background: `bg-cream-bg` (F2F0EB)
+- Layout: `flex items-center justify-center min-h-screen`
+- Card: `bg-white rounded-3xl p-8 shadow-2xl max-w-md`
+
+**Title:**
+- Text: "خطأ في الخادم"
+- Size: `text-4xl font-bold`
+- Color: `text-brown-text`
+
+**Description:**
+- Text: "حدث خطأ غير متوقع. نعمل على حل المشكلة."
+- Size: `text-lg`
+- Color: `text-brown-text/70`
+
+**CTA Button:**
+- Text: "العودة للصفحة الرئيسية"
+- Type: Link → `/`
+- Component: `Button` variant `primary`
+
+**RTL Support:**
+- ✅ Full Arabic RTL layout
+- Direction: `dir="rtl"`
+
+---
+
+### 1.12 Custom 404 Error Page (`not-found`)
+
+**URL:** Any invalid route (e.g., `/invalid-page`)  
+**التاريخ:** 2026-01-16  
+**File:** `src/app/not-found.tsx`
+
+#### 📱 ما يظهر على الشاشة:
+
+**Header & Footer:**
+- ✅ **Header موجود**
+- ✅ **Footer موجود**
+
+**Content:**
+- Similar layout to 500 page
+- Title: "الصفحة غير موجودة"
+- Description: "عذراً، الصفحة التي تبحث عنها غير موجودة."
+
+**CTA Buttons:**
+- "الصفحة الرئيسية" → `/`
+- "ابدأ الاختبار" → `/quiz`
+
+**Improvements:**
+- ✅ Better route validation and 404 status handling
+- ✅ RTL Arabic layout
+
+---
+
 ## 2. Authenticated Flow (المستخدم المسجل)
 
 ### 2.1 Dashboard (`/dashboard`)
@@ -797,6 +935,14 @@
     7. Updates session: `update({ image: avatarUrl })`
   - **Error Handling:** Shows error toast on failure with Arabic messages
   - **Implementation:** `src/app/profile/page.tsx` (Line 84-133)
+  - **Delete Button:**
+    - Position: `absolute bottom-1 left-1` (opposite of upload button)
+    - Icon: Trash2 (size 14)
+    - Background: `bg-red-500/90 hover:bg-red-500`
+    - Shows when avatar exists (conditional rendering)
+    - Click → Confirmation dialog → DELETE to `/api/avatar`
+    - On success: Updates session with `update({ image: null })`
+    - Error handling: Shows error toast on failure
 
 **User Name:**
 - Text: `session.user.name` or "عبدالله محمد" (fallback)
@@ -902,40 +1048,67 @@
 
 ---
 
-### 2.3 Perfume Detail Page (`/perfume/[id]`)
+### 2.3 صفحة تفاصيل العطر (`/perfume/[id]`)
 
-**URL:** `http://localhost:3000/perfume/[id]`  
-**التاريخ:** 2026-01-15  
-**File:** `src/app/perfume/[id]/page.tsx`
+**URL:** `/perfume/[id]` (مثال: `/perfume/123`)  
+**الملف:** `src/app/perfume/[id]/page.tsx`  
+**النوع:** Server Component (async)
 
-#### 📱 ما يظهر على الشاشة:
+#### 1. مصدر البيانات:
+- **Static Data:** من `@/lib/data/perfumes`
+- **الدالة:** `getPerfumeById(id)` تبحث في مصفوفة `perfumes`
+- **Fallback:** إذا لم يُعثر على ID → يستخدم `perfumes[0]`
+- **Normalization:** `normalizePerfume()` لتوحيد البيانات
+- ⚠️ **ملاحظة:** لا يوجد API call - البيانات ثابتة
 
-**Header & Footer:**
-- ✅ **Header موجود**
-- ✅ **Footer موجود**
+#### 2. العرض:
+- **Grid:** عمود واحد (موبايل) → عمودين (Desktop)
+  - **العمود الأيمن:** صورة العطر (SmartImage 600x800)
+  - **العمود الأيسر:** المعلومات
 
-**Content:**
-- Perfume image (large, Next.js Image)
-- Name & Brand
-- Match percentage
-- Safety badge
-- Description
-- Scent pyramid
-- Price comparison (if available)
-- "أضف للمفضلة" button
-- Store links
+#### 3. المكونات:
+- **SmartImage:** صورة العطر (aspect 3:4)
+- **الاسم:** `text-4xl md:text-5xl font-bold`
+- **الماركة:** `text-2xl font-semibold`
+- **SpeedometerGauge:** مقياس الأمان
+  - داخل `Suspense` مع fallback `LoadingSpinner`
+  - يأخذ `score` و `status` (افتراضي: 85, 'safe')
+- **PerfumeTimeline:** الهرم العطري (3 مراحل)
+  - داخل `Suspense` مع fallback skeleton
+  - ✅ **Fixed 2026-01-16:** Timeline visualization bugs (layering, responsive sizing)
+  - ⚠️ **البيانات:** Still hardcoded examples (برغموت، لافندر، أمبروكسان) - pending API integration
 
-#### 🔘 Interactions:
+#### 4. الأزرار (في PerfumeDetailCTA):
+- **زر مشاركة:** `ShareButton` مع عنوان العطر
+- **زر المفضلة:** Heart icon toggle button
+  - Guest: Saves to `localStorage.guestFavorites` via `useFavorites` hook
+  - Authenticated: POST/DELETE to `/api/user/favorites`
+  - States: Outline (not favorited) / Filled red (favorited)
+  - Cross-Tab Sync: BroadcastChannel updates across all tabs
+- **زر "قارن الأسعار":** 
+  - أيقونة DollarSign
+  - يفتح dropdown الأسعار
+  - يجلب من `/api/prices/compare?perfumeId=${id}`
+  - Loading state: Spinner
+  - Empty state: "لا توجد أسعار متاحة"
 
-1. **Add to Favorites:**
-   - **Guest:** Saves to `localStorage.guestFavorites` via `useFavorites` hook
-   - **Authenticated:** POST to `/api/user/favorites` via `useFavorites` hook
-   - Button changes: "تمت الإضافة ✓"
-   - **Cross-Tab Sync:** BroadcastChannel syncs across tabs
-   - **Network Check:** Prevents operation when offline (`useNetworkStatus`)
+#### 5. ما هو مفقود:
+- ❌ الوصف
+- ❌ السعر والتقييم
+- ❌ Accords
+- ❌ العطور المشابهة
+- ❌ 404 handling (يستخدم fallback بدلاً من ذلك)
 
-2. **Store Links:**
-   - Click → Opens affiliate link in new tab
+#### 6. الحالات:
+- **Loading:** فقط حول SpeedometerGauge و PerfumeTimeline
+- **Error:** غير موجود
+- **404:** غير موجود (fallback إلى أول عطر)
+- **Offline:** غير موجود
+
+#### 7. Responsive & RTL:
+- ✅ Grid: `grid-cols-1 lg:grid-cols-2`
+- ✅ نصوص responsive: `text-4xl md:text-5xl`
+- ✅ `dir="rtl"` على الصفحة
 
 ---
 
@@ -972,6 +1145,11 @@
 - **Touch Manipulation:** `touch-manipulation` CSS class
 - **Implementation:** `src/components/ui/button.tsx` line 12, 41-44
 
+**Hamburger Menu (Mobile):**
+- ✅ **Fixed:** Menu toggle behavior and styling for mobile navigation
+- Smooth animation, proper z-index, RTL-aware positioning
+- Touch-friendly 44x44px target
+
 ---
 
 ### 3.2 PWA Features
@@ -1004,6 +1182,12 @@
 - API calls fail gracefully with network status check
 - Shows cached content when offline
 - **Network Status:** `useNetworkStatus` hook monitors connectivity
+
+**Offline Fallback Page:**
+- File: `/offline` route
+- Shows when no cached content available
+- Message: "لا يوجد اتصال بالإنترنت" with retry button
+- Background: `bg-cream-bg`
 
 ---
 
@@ -1766,7 +1950,7 @@ return (
 
 ### Configuration
 - [tailwind.config.ts](tailwind.config.ts) - Centralized colors and typography
-- [next.config.ts](next.config.ts) - Next.js configuration (experimental.turbopack: false, optimizeCss: true). Dev environment uses **webpack** via `npm run dev` (package.json: "dev": "next dev --webpack")
+- [next.config.ts](next.config.ts) - Next.js configuration (experimental.optimizeCss: true). Dev environment uses **webpack** via `npm run dev` (package.json: "dev": "next dev --webpack")
 - [layout.tsx](src/app/layout.tsx) - Root layout with providers
 
 ### Utilities

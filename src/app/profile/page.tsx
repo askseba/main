@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   LogOut,
   Camera,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Trash2
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -55,6 +56,36 @@ function ErrorToast({ error, onClose }: { error: string; onClose: () => void }) 
   );
 }
 
+// Success Toast Component with cleanup
+function SuccessToast({ message, onClose }: { message: string; onClose: () => void }) {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Clear success after 3 seconds
+    timeoutRef.current = setTimeout(() => {
+      onClose();
+    }, 3000);
+
+    // Cleanup: clear timeout when component unmounts or message changes
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [message, onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500/90 backdrop-blur-sm text-white px-6 py-3 rounded-2xl shadow-2xl z-50 max-w-sm text-center text-sm font-medium border border-green-400/50"
+    >
+      {message}
+    </motion.div>
+  );
+}
+
 export default function ProfilePage() {
   const { data: session, update } = useSession();
   // const router = useRouter(); // Removed - no longer needed after logout fix
@@ -62,7 +93,9 @@ export default function ProfilePage() {
   const { isOnline } = useNetworkStatus();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [optimisticBio, setOptimisticBio] = useState(session?.user?.bio || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,7 +112,7 @@ export default function ProfilePage() {
 
   const userName = session?.user?.name || 'عبدالله محمد';
   const userBio = session?.user?.bio || 'محب للعطور الشرقية ✨';
-  const avatarUrl = session?.user?.image || '/default-avatar.png';
+  const avatarUrl = session?.user?.image;
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -144,6 +177,42 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDeleteAvatar = async () => {
+    try {
+      setIsDeleting(true);
+      setError('');
+      
+      // Check network status before deleting
+      if (!isOnline) {
+        setError('لا يوجد اتصال بالإنترنت. يرجى التحقق من اتصالك والمحاولة مرة أخرى.');
+        return;
+      }
+
+      const response = await safeFetch<{ success: boolean; error?: string }>(
+        '/api/avatar',
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (!response.success) {
+        throw new Error(response.error || 'فشل حذف الصورة');
+      }
+
+      // تحديث Session
+      await update({ image: null });
+      
+      // إزالة preview إذا كان موجوداً
+      setImagePreview(null);
+      
+      setSuccess('تم حذف الصورة بنجاح');
+    } catch (err) {
+      setError('حدث خطأ أثناء حذف الصورة');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const openEmail = () => {
     const subject = encodeURIComponent('استفسار حول صبا');
     const body = encodeURIComponent('مرحباً فريق صبا،\n\nأود الاستفسار عن...\n\nشكراً!');
@@ -158,9 +227,9 @@ export default function ProfilePage() {
           {/* Avatar مع رفع */}
           <div className="relative group">
             <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white/50 shadow-2xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-              {imagePreview || avatarUrl ? (
+              {imagePreview || (avatarUrl && avatarUrl !== '/default-avatar.png') ? (
                 <Image
-                  src={imagePreview || avatarUrl}
+                  src={imagePreview || avatarUrl || '/default-avatar.png'}
                   alt="صورة الملف الشخصي"
                   width={112}
                   height={112}
@@ -174,7 +243,7 @@ export default function ProfilePage() {
             {/* زر رفع الصورة */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
+              disabled={isUploading || isDeleting}
               className="absolute bottom-1 right-1 min-w-[44px] min-h-[44px] bg-primary/90 hover:bg-primary text-white p-3 rounded-full border-2 border-white shadow-lg transition-all group-hover:scale-110 disabled:opacity-50 touch-manipulation"
               title="رفع صورة جديدة"
             >
@@ -185,6 +254,29 @@ export default function ProfilePage() {
               )}
             </button>
           </div>
+
+          {/* زر حذف الصورة */}
+          {avatarUrl && avatarUrl !== '/default-avatar.png' && (
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={handleDeleteAvatar}
+                disabled={isDeleting || isUploading}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 border-2 border-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation min-h-[44px]"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" />
+                    <span>جاري الحذف...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>حذف الصورة</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           <h1 className="mt-4 text-2xl md:text-3xl font-bold text-brown leading-tight">{userName}</h1>
           <div className="relative w-full group/bio">
@@ -299,6 +391,16 @@ export default function ProfilePage() {
           <ErrorToast 
             error={error} 
             onClose={() => setError('')} 
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Success Toast */}
+      <AnimatePresence>
+        {success && (
+          <SuccessToast 
+            message={success} 
+            onClose={() => setSuccess('')} 
           />
         )}
       </AnimatePresence>
