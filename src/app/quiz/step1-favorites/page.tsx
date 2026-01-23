@@ -206,7 +206,7 @@ export default function Step1FavoritesPage() {
         {/* Search Bar */}
         <div className="mb-8 relative">
           <div className="relative">
-            <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brown-text/50 w-5 h-5" />
+            <Search className="absolute end-4 top-1/2 transform -translate-y-1/2 text-brown-text/50 w-5 h-5" />
             <input
               type="search"
               inputMode="search"
@@ -223,7 +223,7 @@ export default function Step1FavoritesPage() {
               ابحث عن العطور بالاسم أو الماركة. ستظهر لك أفضل النتائج.
             </span>
             {isSearchLoading && (
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
+              <div className="absolute start-4 top-1/2 transform -translate-y-1/2">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
               </div>
             )}
