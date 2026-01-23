@@ -317,10 +317,12 @@ async function handlePaymentFailed(paymentData: any) {
     // 4. Send failure email (outside transaction - non-critical)
     if (result.email) {
       try {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://askseba.com'
         await sendPaymentFailedEmail(result.email, {
           userName: result.name || 'عزيزي المستخدم',
           reason: failureReason,
-          supportEmail: 'support@askseba.com'
+          supportEmail: 'support@askseba.com',
+          retryUrl: `${appUrl}/pricing?retry=${paymentId}`
         })
       } catch (emailError) {
         console.error('Failed to send failure email:', emailError)

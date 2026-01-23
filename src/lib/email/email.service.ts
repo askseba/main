@@ -129,10 +129,13 @@ export async function sendPaymentFailedEmail(
   details: {
     userName: string
     reason: string
-    supportEmail: string
+    supportEmail?: string
+    retryUrl?: string
   }
 ) {
-  const { userName, reason, supportEmail } = details
+  const { userName, reason, supportEmail = 'support@askseba.com', retryUrl } = details
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://askseba.com'
+  const finalRetryUrl = retryUrl || `${appUrl}/pricing`
   
   const emailHtml = `
 <!DOCTYPE html>
@@ -179,7 +182,7 @@ export async function sendPaymentFailedEmail(
       </p>
       
       <center>
-        <a href="${process.env.NEXT_PUBLIC_APP_URL}/pricing" class="cta-button">
+        <a href="${finalRetryUrl}" class="cta-button">
           حاول مرة أخرى
         </a>
       </center>
@@ -206,7 +209,7 @@ export async function sendPaymentFailedEmail(
     await resend.emails.send({
       from: 'Ask Seba <noreply@askseba.com>',
       to,
-      subject: '❌ فشلت عملية الدفع في Ask Seba',
+      subject: 'فشل الدفع - حاول مرة أخرى',
       html: emailHtml
     })
     
