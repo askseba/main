@@ -145,8 +145,15 @@ export default function Step1FavoritesPage() {
     <div className="min-h-screen bg-cream-bg" dir="rtl">
       <div className="container mx-auto px-4 py-12">
         {/* Progress Indicator */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-3 h-3 rounded-full bg-primary" />
+        <div 
+          className="flex items-center justify-center gap-2 mb-8"
+          role="progressbar"
+          aria-valuenow={1}
+          aria-valuemin={0}
+          aria-valuemax={3}
+          aria-label="تقدم الاختبار: الخطوة 1 من 3"
+        >
+          <div className="w-3 h-3 rounded-full bg-primary" aria-current="step" />
           <div className="w-3 h-3 rounded-full bg-brown-text/20" />
           <div className="w-3 h-3 rounded-full bg-brown-text/20" />
         </div>
@@ -207,8 +214,14 @@ export default function Step1FavoritesPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="اكتب اسم عطر للبدء..."
+              aria-label="ابحث عن عطر مفضل"
+              aria-describedby="search-help"
+              maxLength={50}
               className="w-full px-12 py-4 border-2 border-brown-text/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-brown-text placeholder-brown-text/50 text-lg"
             />
+            <span id="search-help" className="sr-only">
+              ابحث عن العطور بالاسم أو الماركة. ستظهر لك أفضل النتائج.
+            </span>
             {isSearchLoading && (
               <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
@@ -244,7 +257,8 @@ export default function Step1FavoritesPage() {
                     <button
                       onClick={() => handleAddPerfume(perfume.id)}
                       disabled={isMaxReached}
-                      className={`min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-5 py-3 rounded-lg font-semibold text-sm transition-all touch-manipulation ${
+                      aria-label={`إضافة ${perfume.name} من ${perfume.brand}`}
+                      className={`min-h-[44px] min-w-[44px] flex items-center justify-center gap-1.5 px-5 py-3 rounded-lg font-semibold text-sm transition-all touch-manipulation focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                         isMaxReached
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-50'
                           : 'bg-primary text-white hover:bg-primary/90 active:scale-95'
