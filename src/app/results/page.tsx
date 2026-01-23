@@ -6,9 +6,11 @@ import { Search, Filter, ChevronLeft, ChevronRight, Sparkles, DollarSign, Heart 
 import { PerfumeCard } from '@/components/ui/PerfumeCard'
 import { CTAButton } from '@/components/ui/CTAButton'
 import { ShareButton } from '@/components/ui/ShareButton'
+import { UpgradePrompt } from '@/components/ui/UpgradePrompt'
 import { useQuiz } from '@/contexts/QuizContext'
 import { useSession } from 'next-auth/react'
 import { formatPerfumeResultsTitle } from '@/lib/utils/arabicPlural'
+import { LIMITS } from '@/lib/gating'
 import { type ScoredPerfume } from '@/lib/matching'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -38,6 +40,9 @@ export default function ResultsPage() {
   const { data: quizData } = useQuiz()
   const { data: session } = useSession()
   const { isOnline } = useNetworkStatus()
+  
+  // Determine user tier (GUEST if no session, otherwise assume PREMIUM for logged-in users)
+  const userTier = !session ? 'GUEST' : 'PREMIUM'
   
   // State for API data
   const [scoredPerfumes, setScoredPerfumes] = useState<ScoredPerfume[]>([])
@@ -78,7 +83,8 @@ export default function ResultsPage() {
   // UI State
   const [searchQuery, setSearchQuery] = useState('')
   const { filters, setFilters } = useResultsFilters()
-  const [sortBy, setSortBy] = useState<'match' | 'price-low' | 'price-high' | 'rating'>('match')
+  // ✅ CHANGED: Removed 'price-low' and 'price-high' from sort options
+  const [sortBy, setSortBy] = useState<'match' | 'rating'>('match')
   const [currentPage, setCurrentPage] = useState(1)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const itemsPerPage = 12
@@ -143,7 +149,7 @@ export default function ResultsPage() {
     fetchMatchedPerfumes()
   }, [quizData.step1_liked, quizData.step2_disliked, quizData.step3_allergy])
 
-  // Client-side filtering (search, price, etc.)
+  // Client-side filtering (search, match%, families - NO PRICE)
   const filteredPerfumes = useMemo(() => {
     let result = [...scoredPerfumes]
 
@@ -161,12 +167,8 @@ export default function ResultsPage() {
       result = result.filter(perfume => perfume.finalScore >= filters.matchPercentage)
     }
 
-    // Price filter
-    if (filters.maxPrice < 5000) {
-      result = result.filter(perfume => 
-        (perfume.price ?? 0) <= filters.maxPrice
-      )
-    }
+    // ❌ REMOVED: Price filter (lines 164-169 deleted)
+    // Price is for reference only, not for filtering
 
     // Families filter
     if (filters.families.length > 0) {
@@ -197,16 +199,10 @@ export default function ResultsPage() {
       })
     }
 
-    // Sort
+    // ✅ CHANGED: Sort (removed price-low and price-high)
     switch (sortBy) {
       case 'match':
         result.sort((a, b) => b.finalScore - a.finalScore)
-        break
-      case 'price-low':
-        result.sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
-        break
-      case 'price-high':
-        result.sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
         break
       case 'rating':
         result.sort((a, b) => b.finalScore - a.finalScore)
@@ -216,8 +212,16 @@ export default function ResultsPage() {
     return result
   }, [scoredPerfumes, searchQuery, filters, sortBy])
 
-  const totalPages = Math.ceil(filteredPerfumes.length / itemsPerPage)
-  const paginatedPerfumes = filteredPerfumes.slice(
+  // Determine results limit based on tier
+  const resultsToShow = userTier === 'GUEST' 
+    ? LIMITS.GUEST_RESULTS  // 3
+    : LIMITS.PREMIUM_RESULTS // 12
+  
+  // Limit visible results for guests
+  const visibleResults = filteredPerfumes.slice(0, resultsToShow)
+  
+  const totalPages = Math.ceil(visibleResults.length / itemsPerPage)
+  const paginatedPerfumes = visibleResults.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
@@ -251,159 +255,101 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-bg" dir="rtl">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12 text-center"
-        >
-          <h1 className="font-tajawal-bold text-4xl md:text-5xl text-brown-text mb-4">
-            نتائج التوافق ({filteredPerfumes.length})
-          </h1>
-          <p className="text-xl text-brown-text/85 mb-2">
-            {filteredPerfumes.length === 0 
-              ? "لا توجد نتائج مطابقة" 
-              : `تم العثور على ${formatPerfumeResultsTitle(filteredPerfumes.length)}`
-            }
-          </p>
-          
-          {/* Personalization indicator */}
-          {hasPreferences && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mt-4"
-            >
-              <Sparkles className="w-5 h-5" />
-              <span className="font-medium">نتائج مخصّصة بناءً على ذوقك العطري</span>
-            </motion.div>
-          )}
-          
-          {/* User Scent DNA */}
-          {userScentDNA.length > 0 && (
-            <div className="mt-4 text-sm text-brown-text/75">
-              <span>الحمض النووي العطري: </span>
-              <span className="text-primary font-medium">
-                {[...new Set(userScentDNA)].slice(0, 5).join(' • ')}
-              </span>
-            </div>
-          )}
-
-          {/* Enhanced conditional UX: Guest CTA */}
-          {!session && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 bg-gradient-to-r from-rose-500/10 to-pink-500/10 border border-rose-200/50 backdrop-blur-sm rounded-2xl p-6 text-center mb-8"
-            >
-              <div className="flex flex-col items-center gap-4">
-                <Heart className="w-12 h-12 text-rose-400" />
-                <div>
-                  <h3 className="text-xl font-bold text-rose-800 mb-2">
-                    سجّل لحفظ اقتراحاتك ♥️
-                  </h3>
-                  <p className="text-rose-600 mb-4">
-                    احفظ مفضلاتك واحصل على توصيات شخصية
-                  </p>
-                </div>
-                <Link href={`/login?callbackUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '/results')}`}>
-                  <CTAButton variant="primary" size="sm" className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600">
-                    ابدأ الآن مجاناً
-                  </CTAButton>
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* Controls */}
-        <div className="flex flex-col lg:flex-row gap-6 mb-12">
-          {/* Search + Sort */}
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <div className="relative flex-1">
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-brown-text/50 w-5 h-5" />
-              <input
-                type="search"
-                inputMode="search"
-                autoComplete="off"
-                aria-label="ابحث عن العطور بالاسم أو العلامة التجارية"
-                placeholder="ابحث بالاسم أو العلامة التجارية..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value)
-                  setCurrentPage(1)
-                }}
-                className="w-full pe-12 ps-4 py-4 rounded-2xl border-2 border-brown-text/20 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
-              />
-            </div>
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value as 'match' | 'price-low' | 'price-high' | 'rating')
-                setCurrentPage(1)
-              }}
-              className="px-6 py-4 rounded-2xl border-2 border-brown-text/20 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white min-w-[160px]"
-            >
-              <option value="match">أعلى تطابق</option>
-              <option value="price-low">السعر: صاعد</option>
-              <option value="price-high">السعر: هابط</option>
-              <option value="rating">التقييم</option>
-            </select>
-          </div>
-
-          {/* Mobile Filter Button */}
-          <button 
-            onClick={() => setIsFilterOpen(true)}
-            className="lg:hidden min-h-[44px] min-w-[44px] p-4 bg-white border-2 border-brown-text/20 rounded-2xl hover:shadow-md flex items-center gap-2 touch-manipulation"
+    <div className="min-h-screen bg-cream-bg pb-12" dir="rtl">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Hero Header */}
+        <div className="py-12 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <Filter className="w-5 h-5" />
-            فلاتر
-          </button>
+            <h1 className="text-4xl md:text-5xl font-tajawal-black text-brown-text mb-4 leading-tight">
+              <Sparkles className="inline w-10 h-10 text-primary mb-2" />
+              {formatPerfumeResultsTitle(filteredPerfumes.length)}
+            </h1>
+            <p className="text-xl text-brown-text/75 mb-6">
+              {hasPreferences 
+                ? 'عطور مخصصة لك بناءً على تفضيلاتك'
+                : 'جميع العطور المتاحة'}
+            </p>
+            {userScentDNA.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2 mb-6">
+                {userScentDNA.map((family, idx) => (
+                  <span
+                    key={idx}
+                    className="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                  >
+                    {family}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex justify-center gap-4">
+              <ShareButton 
+                title="نتائج بحث صبا"
+                text={`اكتشفت ${filteredPerfumes.length} عطر مناسب لي عبر صبا!`}
+              />
+              <Link href="/dashboard">
+                <CTAButton variant="secondary">
+                  لوحة التحكم
+                </CTAButton>
+              </Link>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Main Content */}
+        {/* Search & Filters */}
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filter Sidebar - Desktop Static */}
-          <div className="hidden lg:block lg:w-[35%] lg:min-w-[320px] order-last lg:order-first">
-            <div className="sticky top-4 bg-white rounded-2xl border-2 border-brown-text/20 p-6 shadow-md">
-              <h2 className="font-tajawal-bold text-3xl md:text-4xl text-brown-text mb-6">تصفية النتائج</h2>
-              
-              {/* Match Percentage */}
+          {/* Sidebar Filters */}
+          <div className="lg:w-80 hidden lg:block">
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-2xl sticky top-24">
+              {/* Search */}
+              <div className="mb-6 relative">
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brown-text/40" />
+                <input
+                  type="text"
+                  placeholder="ابحث عن عطر..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pr-12 pl-4 py-3 rounded-xl border border-brown-text/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-brown-text"
+                />
+              </div>
+
+              {/* Sort */}
               <div className="mb-6">
-                <label className="block text-brown-text font-medium mb-3 flex justify-between">
-                  <span>نسبة التوافق</span>
-                  <span className="text-primary">{filters.matchPercentage}% +</span>
-                </label>
+                <h3 className="font-tajawal-bold text-2xl md:text-3xl text-brown-text mb-3">الترتيب</h3>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  className="w-full p-3 rounded-xl border border-brown-text/20 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-brown-text bg-white"
+                >
+                  <option value="match">الأعلى تطابقاً</option>
+                  <option value="rating">الأعلى تقييماً</option>
+                  {/* ❌ REMOVED: price-low and price-high options */}
+                </select>
+              </div>
+
+              {/* Match Percentage Filter */}
+              <div className="mb-6">
+                <h3 className="font-tajawal-bold text-2xl md:text-3xl text-brown-text mb-3">نسبة التطابق</h3>
                 <input
                   type="range"
                   min="0"
                   max="100"
+                  step="10"
                   value={filters.matchPercentage}
                   onChange={(e) => setFilters({ ...filters, matchPercentage: Number(e.target.value) })}
                   className="w-full h-2 bg-primary/10 rounded-lg appearance-none cursor-pointer accent-primary"
                 />
+                <div className="flex justify-between text-sm text-brown-text/75 mt-2">
+                  <span>{filters.matchPercentage}%</span>
+                  <span>100%</span>
+                </div>
               </div>
 
-              {/* Price Range */}
-              <div className="mb-6">
-                <h3 className="font-tajawal-bold text-2xl md:text-3xl text-brown-text mb-3">السعر</h3>
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-cream-bg px-3 py-2 rounded-lg border border-brown-text/10 text-center flex-1">
-                    {filters.maxPrice} ر.س
-                  </div>
-                </div>
-                <input
-                  type="range"
-                  min="100"
-                  max="5000"
-                  step="100"
-                  value={filters.maxPrice}
-                  onChange={(e) => setFilters({ ...filters, maxPrice: Number(e.target.value) })}
-                  className="w-full h-2 bg-primary/10 rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-              </div>
+              {/* ❌ REMOVED: Price Filter (lines 391-406 deleted) */}
+              {/* Price is for reference only - users use "قارن الأسعار" button */}
 
               {/* Families Filter */}
               <div className="mb-6">
@@ -493,6 +439,7 @@ export default function ResultsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       className="relative group"
+                      data-perfume-card
                     >
                       <PerfumeCard 
                         id={perfume.id}
@@ -632,6 +579,18 @@ export default function ResultsPage() {
                     </motion.div>
                   ))}
                 </div>
+
+                {/* UpgradePrompt for Guests after limited results */}
+                {filteredPerfumes.length > resultsToShow && userTier === 'GUEST' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="mb-12"
+                  >
+                    <UpgradePrompt />
+                  </motion.div>
+                )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
