@@ -101,7 +101,10 @@ export class MoyasarService {
     const { userId, plan, amount, userEmail, userName } = params
     
     // ✅ Environment-agnostic: Use NEXT_PUBLIC_APP_URL only
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://askseba.com'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
+    if (!appUrl) {
+      throw new Error('NEXT_PUBLIC_APP_URL is not configured')
+    }
     
     const checkoutRequest: MoyasarCheckoutRequest = {
       amount: Math.round(amount * 100), // Moyasar expects amount in halalas (SAR * 100)
@@ -116,8 +119,6 @@ export class MoyasarService {
         tier: 'PREMIUM'
       }
     }
-    
-    console.log('Moyasar checkoutRequest:', JSON.stringify(checkoutRequest, null, 2))
     
     try {
       const response = await fetch(`${this.baseUrl}/payments`, {
