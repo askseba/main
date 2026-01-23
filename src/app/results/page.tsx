@@ -7,6 +7,7 @@ import { PerfumeCard } from '@/components/ui/PerfumeCard'
 import { CTAButton } from '@/components/ui/CTAButton'
 import { ShareButton } from '@/components/ui/ShareButton'
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt'
+import { BlurredTeaserCard } from '@/components/ui/BlurredTeaserCard'
 import { useQuiz } from '@/contexts/QuizContext'
 import { useSession } from 'next-auth/react'
 import { formatPerfumeResultsTitle } from '@/lib/utils/arabicPlural'
@@ -579,6 +580,20 @@ export default function ResultsPage() {
                     </motion.div>
                   ))}
                 </div>
+
+                {/* Blurred Teaser Cards for Guests */}
+                {userTier === 'GUEST' && filteredPerfumes.length > resultsToShow && (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    {Array.from({ length: Math.min(7, filteredPerfumes.length - resultsToShow) }).map((_, i) => (
+                      <BlurredTeaserCard 
+                        key={`blurred-${i}`}
+                        title={`عطر ${i + 1}`}
+                        brand="ماركة مموّهة"
+                        matchPercentage={85 + i * 2}
+                      />
+                    ))}
+                  </div>
+                )}
 
                 {/* UpgradePrompt for Guests after limited results */}
                 {filteredPerfumes.length > resultsToShow && userTier === 'GUEST' && (

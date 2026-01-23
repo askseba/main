@@ -201,10 +201,9 @@ export default function Dashboard() {
     )
   }
 
-  // Memoize tabs array to prevent recreation on every render
   const tabs = useMemo(() => [
     { id: 'favorites', label: '💜 المفضلة', icon: 'favorite', count: favorites.length },
-    { id: 'disliked', label: '❌ المكروهة', icon: 'thumb_down', count: dislikedPerfumes.length },
+    { id: 'disliked', label: '❌ المكروهة', icon: 'thumbsDown', count: dislikedPerfumes.length },
     { id: 'wishlist', label: '💾 قائمة الرغبات', icon: 'bookmark', count: wishlistPerfumes.length }
   ], [favorites.length, dislikedPerfumes.length, wishlistPerfumes.length])
 
@@ -368,14 +367,36 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Radar Chart */}
+        {/* ✅ UPDATED: Radar Chart with Title and Description */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl border border-cream-bg/50">
-          <h2 className="text-3xl md:text-4xl font-bold text-brown-text mb-4 sm:mb-6 md:mb-8 text-center">بصمتك العطرية</h2>
-          {!hasQuizData && (
-            <p className="text-center text-brown-text/85 mb-4 sm:mb-6 text-base sm:text-lg px-4">
-              قم بإجراء الاختبار لرؤية بصمتك العطرية الشخصية
+          {/* ✅ NEW: Title and Description */}
+          <div className="text-center mb-6 space-y-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-brown-text flex items-center justify-center gap-3">
+              <Sparkles className="w-8 h-8 text-primary" />
+              بصمتك العطرية (Scent DNA)
+            </h2>
+            <p className="text-brown-text/75 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              تحليل تفضيلاتك بناءً على العطور التي أعجبتك
             </p>
+          </div>
+          
+          {!hasQuizData && (
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 mb-6 text-center">
+              <AlertTriangle className="w-12 h-12 text-amber-600 mx-auto mb-3" />
+              <p className="text-brown-text/85 text-base sm:text-lg font-medium mb-3">
+                قم بإجراء الاختبار لرؤية بصمتك العطرية الشخصية
+              </p>
+              <Button
+                onClick={handleStartQuiz}
+                variant="primary"
+                size="lg"
+                className="bg-primary hover:bg-primary/90"
+              >
+                ابدأ الاختبار الآن
+              </Button>
+            </div>
           )}
+          
           <div className="flex justify-center px-2">
             <ErrorBoundary
               fallback={
@@ -395,7 +416,11 @@ export default function Dashboard() {
                 </div>
               }
             >
-              <RadarChart data={dynamicRadarData} size={400} />
+              <RadarChart 
+                data={dynamicRadarData} 
+                size={400}
+                aria-label="رادار بصمتك العطرية - يوضح توزيع العائلات العطرية المفضلة لديك"
+              />
             </ErrorBoundary>
           </div>
         </div>

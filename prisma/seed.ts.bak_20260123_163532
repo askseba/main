@@ -1,145 +1,12 @@
 // prisma/seed.ts
-// Unified seed script combining:
-// - Phase 1: IFRA Materials + Symptom Mappings
-// - Base: Perfumes + Stores
+// Seed script to populate database with initial perfume data
 // Run: npx prisma db seed
 
 import { PrismaClient } from '@prisma/client'
-import { euAllergens } from '../src/lib/data/ifra/eu-allergens-2023'
 
 const prisma = new PrismaClient({
   log: ['info', 'warn', 'error']
 })
-
-// ============================================
-// Phase 1: IFRA Materials Seeding
-// ============================================
-
-async function seedIfraMaterials() {
-  console.log('📦 Seeding IFRA materials...')
-  let addedCount = 0
-  let skippedCount = 0
-
-  for (const allergen of euAllergens) {
-    try {
-      await prisma.ifraMaterial.upsert({
-        where: { name: allergen.name },
-        update: {
-          nameAr: allergen.nameAr,
-          casNumber: allergen.casNumber,
-          maxConcentration: allergen.maxConcentration,
-          category: allergen.category,
-          symptoms: JSON.stringify(allergen.symptoms)
-        },
-        create: {
-          name: allergen.name,
-          nameAr: allergen.nameAr,
-          casNumber: allergen.casNumber,
-          maxConcentration: allergen.maxConcentration,
-          unit: 'percent',
-          category: allergen.category,
-          euRegulation: 'EU 2023/1545',
-          amendmentVersion: 'IFRA 51',
-          productCategory: 4, // Fine Fragrance
-          symptoms: JSON.stringify(allergen.symptoms),
-          description: null
-        }
-      })
-      addedCount++
-    } catch (error: any) {
-      if (error.code === 'P2002') {
-        // Unique constraint violation - already exists
-        skippedCount++
-      } else {
-        console.error(`Error seeding ${allergen.name}:`, error.message)
-      }
-    }
-  }
-
-  console.log(`✅ IFRA materials: ${addedCount} added/updated, ${skippedCount} skipped`)
-}
-
-// ============================================
-// Phase 1: Symptom Mappings Seeding
-// ============================================
-
-async function seedSymptomMappings() {
-  console.log('📊 Seeding symptom mappings...')
-  
-  // Common symptom mappings based on IFRA data
-  const symptomMappings = [
-    // Skin-related
-    { symptom: 'skin_allergy', symptomAr: 'حساسية جلدية', ingredient: 'Linalool', confidence: 0.7, severity: 'moderate' },
-    { symptom: 'skin_allergy', symptomAr: 'حساسية جلدية', ingredient: 'Limonene', confidence: 0.7, severity: 'moderate' },
-    { symptom: 'redness', symptomAr: 'احمرار', ingredient: 'Geraniol', confidence: 0.6, severity: 'mild' },
-    { symptom: 'redness', symptomAr: 'احمرار', ingredient: 'Eugenol', confidence: 0.6, severity: 'mild' },
-    { symptom: 'itching', symptomAr: 'حكة', ingredient: 'Citronellol', confidence: 0.6, severity: 'mild' },
-    { symptom: 'itching', symptomAr: 'حكة', ingredient: 'Benzyl Cinnamate', confidence: 0.5, severity: 'mild' },
-    { symptom: 'irritation', symptomAr: 'تهيج', ingredient: 'Citral', confidence: 0.7, severity: 'moderate' },
-    { symptom: 'irritation', symptomAr: 'تهيج', ingredient: 'Hydroxycitronellal', confidence: 0.7, severity: 'moderate' },
-    { symptom: 'severe_irritation', symptomAr: 'تهيج شديد', ingredient: 'Isoeugenol', confidence: 0.8, severity: 'severe' },
-    { symptom: 'burning_sensation', symptomAr: 'حرقان', ingredient: 'Cinnamal', confidence: 0.7, severity: 'moderate' },
-    { symptom: 'burning_sensation', symptomAr: 'حرقان', ingredient: 'Menthol', confidence: 0.5, severity: 'mild' },
-    { symptom: 'swelling', symptomAr: 'تورم', ingredient: 'Cinnamal', confidence: 0.6, severity: 'moderate' },
-    
-    // Respiratory
-    { symptom: 'breathing_difficulty', symptomAr: 'صعوبة تنفس', ingredient: 'Eucalyptus Globulus Oil', confidence: 0.6, severity: 'moderate' },
-    { symptom: 'breathing_difficulty', symptomAr: 'صعوبة تنفس', ingredient: 'Pinus Mugo/Pumila Oil', confidence: 0.5, severity: 'moderate' },
-    
-    // Systemic
-    { symptom: 'headache', symptomAr: 'صداع', ingredient: 'Linalool', confidence: 0.4, severity: 'mild' },
-    { symptom: 'headache', symptomAr: 'صداع', ingredient: 'Geraniol', confidence: 0.4, severity: 'mild' },
-    { symptom: 'headache', symptomAr: 'صداع', ingredient: 'Jasmine Oil/Extract', confidence: 0.3, severity: 'mild' },
-    { symptom: 'headache', symptomAr: 'صداع', ingredient: 'Rose Flower Oil/Extract', confidence: 0.3, severity: 'mild' },
-    { symptom: 'headache', symptomAr: 'صداع', ingredient: 'Ylang Ylang Oil', confidence: 0.4, severity: 'mild' },
-    { symptom: 'dizziness', symptomAr: 'دوخة', ingredient: 'Camphor', confidence: 0.6, severity: 'moderate' },
-    { symptom: 'dizziness', symptomAr: 'دوخة', ingredient: 'Lavandula Oil/Extract', confidence: 0.3, severity: 'mild' },
-    { symptom: 'nausea', symptomAr: 'غثيان', ingredient: 'Camphor', confidence: 0.5, severity: 'moderate' },
-    { symptom: 'nausea', symptomAr: 'غثيان', ingredient: 'Ylang Ylang Oil', confidence: 0.4, severity: 'mild' },
-    
-    // Special cases
-    { symptom: 'photosensitivity', symptomAr: 'حساسية ضوئية', ingredient: 'Citrus Limon Peel Oil', confidence: 0.7, severity: 'moderate' },
-    { symptom: 'photosensitivity', symptomAr: 'حساسية ضوئية', ingredient: 'Verbena Oil/Extract', confidence: 0.8, severity: 'severe' },
-    { symptom: 'severe_allergy', symptomAr: 'حساسية شديدة', ingredient: 'Evernia Prunastri Extract', confidence: 0.9, severity: 'severe' },
-    { symptom: 'severe_allergy', symptomAr: 'حساسية شديدة', ingredient: 'Evernia Furfuracea Extract', confidence: 0.9, severity: 'severe' }
-  ]
-
-  let mappingCount = 0
-  for (const mapping of symptomMappings) {
-    try {
-      await prisma.symptomIngredientMapping.upsert({
-        where: {
-          symptom_ingredient: {
-            symptom: mapping.symptom,
-            ingredient: mapping.ingredient
-          }
-        },
-        update: {
-          confidence: mapping.confidence,
-          severity: mapping.severity
-        },
-        create: {
-          symptom: mapping.symptom,
-          symptomAr: mapping.symptomAr,
-          ingredient: mapping.ingredient,
-          confidence: mapping.confidence,
-          severity: mapping.severity,
-          evidenceLevel: 'moderate',
-          source: 'EU 2023/1545 + IFRA 51'
-        }
-      })
-      mappingCount++
-    } catch (error: any) {
-      console.error(`Error seeding mapping ${mapping.symptom}-${mapping.ingredient}:`, error.message)
-    }
-  }
-
-  console.log(`✅ Symptom mappings: ${mappingCount} added/updated`)
-}
-
-// ============================================
-// Base: Perfumes & Stores Seeding
-// ============================================
 
 // Sample scent pyramids for each perfume
 const scentPyramids: Record<string, { top: string[], heart: string[], base: string[] }> = {
@@ -506,8 +373,8 @@ const storesData = [
   }
 ]
 
-async function seedPerfumesAndStores() {
-  console.log('🏪 Seeding stores...')
+async function main() {
+  console.log('🌱 Starting seed...')
   
   // Clear existing data
   await prisma.price.deleteMany()
@@ -523,6 +390,7 @@ async function seedPerfumesAndStores() {
   console.log('🗑️  Cleared existing perfumes')
   
   // Seed stores (upsert to avoid duplicates)
+  console.log('\n🏪 Seeding stores...')
   for (const store of storesData) {
     await prisma.store.upsert({
       where: { slug: store.slug },
@@ -564,30 +432,6 @@ async function seedPerfumesAndStores() {
   }
   
   console.log(`\n🎉 Seeded ${storesData.length} stores and ${perfumesData.length} perfumes successfully!`)
-}
-
-// ============================================
-// Unified Main Function
-// ============================================
-
-async function main() {
-  console.log('🌱 Starting unified seed...')
-  
-  try {
-    // Phase 1: IFRA Materials
-    await seedIfraMaterials()
-    
-    // Phase 1: Symptom Mappings
-    await seedSymptomMappings()
-    
-    // Base: Perfumes & Stores
-    await seedPerfumesAndStores()
-    
-    console.log('\n✨ All seeding completed successfully!')
-  } catch (error) {
-    console.error('❌ Seed error:', error)
-    throw error
-  }
 }
 
 main()

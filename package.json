@@ -11,6 +11,7 @@
     "test:auth": "npx tsx test-auth.ts",
     "dev:auth": "NEXTAUTH_URL=http://localhost:3000 npm run dev",
     "db:generate": "prisma generate",
+    "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:fill-prices": "npx tsx prisma/fill-prices.ts",
@@ -39,6 +40,7 @@
     "posthog-js": "^1.115.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "resend": "^6.8.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "uuid": "^13.0.0"

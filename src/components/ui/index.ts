@@ -15,6 +15,7 @@ export { Badge } from './Badge'
 export { MobileFilterModal } from './MobileFilterModal'
 export { ShareButton } from './ShareButton'
 export { EmptyState } from './EmptyState'
+export { UpgradePrompt } from './UpgradePrompt'
 
 // New shadcn/ui components
 export { Button, buttonVariants } from './button'

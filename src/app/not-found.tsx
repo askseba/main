@@ -26,7 +26,7 @@ export default function NotFound() {
 
         {/* Buttons */}
         <div className="flex flex-col gap-4 mb-8">
-          <Button asChild variant="default" size="lg" className="w-full">
+          <Button asChild variant="primary" size="lg" className="w-full">
             <Link href="/">العودة للرئيسية</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="w-full">

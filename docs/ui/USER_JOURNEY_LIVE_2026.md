@@ -1,9 +1,68 @@
-# Ask Seba - Live User Journey 2026-01-16 | 100/100 Production Ready + Secure
+# Ask Seba - Live User Journey 2026-01-23 | 100/100 Production Ready + Secure
 
-**آخر تحديث:** 2026-01-16 14:14 +03  
-**النسخة:** v2.2.5 - P1 Logout Race Condition Fixed  
+**آخر تحديث:** 2026-01-23  
+**النسخة:** v3.0.0 - Phase 2-5 Merge Complete  
 **الحالة:** ✅ **100/100 Production Ready + Documented**  
-**Status:** All P0/P1/P2 Improvements Complete + Production Authentication + Quiz Navigation + Cross-Tab Security + UX/A11Y Fixes + Documentation Complete + Logout Race Condition Fixed ✅
+**Status:** All P0/P1/P2 Improvements Complete + Production Authentication + Quiz Navigation + Cross-Tab Security + UX/A11Y Fixes + Documentation Complete + Phase 2-5 Features Merged ✅
+
+---
+
+## 🆕 2026-01-23 Updates (Post-Merge)
+
+### ✅ Match Route: Full Value Ladder (Guest/Free/Premium)
+- **Endpoint:** `POST /api/match` - Unified matching with tier-based gating
+- **Features:**
+  - Guest: 3 results + 9 blurred teasers
+  - Free: 5 results + 7 blurred teasers + upsell card
+  - Premium: 12 full results (unlimited)
+- **Test Limits:** Free users get 2 tests/month, Premium unlimited
+- **Implementation:** `src/app/api/match/route.ts` (merged Phase 2+3)
+
+### ✅ IFRA Safety Scoring + Fragella Bridge
+- **Service:** `perfume-bridge.service.ts` - Unified bridge for local + Fragella perfumes
+- **IFRA Service:** `ifra.service.ts` - Safety scoring and allergen detection
+- **Components:** `SafetyWarnings.tsx` - Displays safety warnings on perfume cards
+- **Features:**
+  - Unified perfume format (local + Fragella)
+  - IFRA material database integration
+  - Symptom-to-ingredient mapping
+  - Safety score calculation (0-100)
+
+### ✅ Moyasar Payments + Email Notifications
+- **Payment Service:** `moyasar.service.ts` - Saudi payment gateway integration
+- **Email Service:** `email.service.ts` - Resend integration for invoices/notifications
+- **Endpoints:**
+  - `POST /api/payment/create-checkout` - Create payment session
+  - `POST /api/webhooks/moyasar` - Payment webhook handler
+- **Features:**
+  - Secure payment processing
+  - Automatic subscription activation
+  - Email receipts and invoices
+  - Subscription renewal handling
+
+### ✅ Test Limits + Blurred Teasers
+- **Gating Logic:** `gating.ts` - Centralized tier limits and access control
+- **Components:**
+  - `BlurredTeaserCard.tsx` - Shows locked results for lower tiers
+  - `ResultsGrid.tsx` - Tier-aware results display
+  - `UpgradePrompt.tsx` - Conversion prompts
+- **Limits:**
+  - Guest: 3 results visible
+  - Free: 5 results + 2 tests/month
+  - Premium: Unlimited results + unlimited tests
+
+### ✅ Unified Schema (PostgreSQL)
+- **Database:** Migrated to PostgreSQL (required for Phase 3+)
+- **New Models:**
+  - `SubscriptionTier` enum (GUEST, FREE, PREMIUM)
+  - `PriceAlert` - User price alerts
+  - `TestHistory` - Quiz test history
+  - `IfraMaterial` - IFRA safety database
+  - `Subscription` - Payment subscriptions
+- **User Model Updates:**
+  - `subscriptionTier` field
+  - `monthlyTestCount` field
+  - `lastTestReset` field
 
 ---
 
@@ -422,7 +481,7 @@
 
 ---
 
-### 1.6 صفحة النتائج (`/results`)
+### 1.6 صفحة النتائج (`/results`) - Phase 3: Value Ladder
 
 **URL:** `/results`  
 **الملف:** `src/app/results/page.tsx`  
@@ -434,7 +493,7 @@
   - `step2_disliked`: IDs العطور غير المفضلة
   - `step3_allergy`: معلومات الحساسية (أعراض، عائلات، مكونات)
 
-- **API Call:** `POST /api/match`
+- **API Call:** `POST /api/match` (Phase 2+3: Unified with tier gating)
   - **Body:**
 ```json
     {
@@ -454,16 +513,34 @@
     - `userScentDNA`: الحمض النووي العطري للمستخدم
     - `hasPreferences`: هل المستخدم لديه تفضيلات
     - `total`: إجمالي العدد
+    - **Phase 3:** `tier`, `resultsLimit`, `blurredCount` (tier-based limits)
 
-#### 2. العرض:
+#### 2. العرض (Phase 3: Tier-Based):
+- **Guest Tier:**
+  - 3 نتائج مرئية كاملة
+  - 9 نتائج محجوبة (BlurredTeaserCard) - metadata only
+  - UpgradePrompt: "سجّل مجاناً لرؤية 5 نتائج" → `/register`
+  
+- **Free Tier:**
+  - 5 نتائج مرئية كاملة
+  - 7 نتائج محجوبة (BlurredTeaserCard)
+  - UpsellCard: "ترقية لـ Premium" → `/pricing`
+  - Test limit indicator: "X/2 اختبارات متبقية هذا الشهر"
+  
+- **Premium Tier:**
+  - 12 نتيجة كاملة (unlimited)
+  - لا توجد نتائج محجوبة
+  - PriceAlertButton: "تنبيه عند انخفاض السعر" (Premium only)
+
 - **Grid:** 2 أعمدة (موبايل) → 4 أعمدة (Desktop)
 - **كل بطاقة عطر تعرض:**
   - صورة العطر
   - الاسم والماركة
   - نسبة التطابق (`finalScore`)
   - الوصف
-  - مؤشر الأمان (`safetyScore === 100`)
-  - أزرار: مفضلة، مشاركة (مسجّل فقط)، مقارنة أسعار
+  - مؤشر الأمان (`safetyScore`) - Phase 2: IFRA Safety
+  - SafetyWarnings component - Phase 2: Allergen warnings
+  - أزرار: مفضلة، مشاركة (مسجّل فقط)، مقارنة أسعار (Premium)
 
 #### 3. الفلاتر (Client-side):
 - **بحث:** بالاسم أو الماركة
@@ -481,27 +558,48 @@
 - **12 عطر لكل صفحة**
 - أزرار: السابق/التالي + أرقام الصفحات
 
-#### 6. Guest vs Authenticated:
+#### 6. Guest vs Authenticated (Phase 3: Tier-Based):
 - **Guest:**
   - المفضلة: تُحفظ في `localStorage.guestFavorites`
   - CTA Banner: "سجّل لحفظ اقتراحاتك ♥️" → `/login?callbackUrl=/results`
   - لا يوجد زر مشاركة
+  - 3 نتائج فقط + 9 محجوبة
   
-- **Authenticated:**
+- **Free (Authenticated):**
   - المفضلة: `POST /api/user/favorites`
   - زر مشاركة ظاهر
-  - لا يوجد CTA Banner
+  - 5 نتائج + 7 محجوبة
+  - Test limit: 2 tests/month
+  - UpgradePrompt: "ترقية لـ Premium" → `/pricing`
+  
+- **Premium (Authenticated):**
+  - المفضلة: `POST /api/user/favorites`
+  - زر مشاركة ظاهر
+  - 12 نتيجة كاملة (unlimited)
+  - Unlimited tests
+  - PriceAlertButton: Set price alerts
 
 #### 7. الحالات الخاصة:
 - **Loading:** صفحة كاملة مع نص "جاري حساب التوافق..."
 - **Error:** رسالة خطأ + زر "إعادة المحاولة"
 - **Empty:** "لا توجد نتائج" + زر "إعادة تعيين الفلاتر"
 - **Offline:** Toast خطأ عند محاولة حفظ مفضلة (مسجّل)
+- **Phase 3: Test Limit Reached:**
+  - Free users: "لقد استخدمت 2/2 اختبارات هذا الشهر" + UpgradePrompt → `/pricing`
+  - Premium: No limit
 
 #### 8. ميزات إضافية:
 - **User Scent DNA:** يُعرض تحت العنوان (أول 5 عناصر)
 - **Personalization Badge:** "نتائج مخصّصة بناءً على ذوقك العطري"
-- **Price Comparison:** زر على كل بطاقة يفتح بحث Google
+- **Price Comparison:** زر على كل بطاقة (Premium only)
+- **Phase 2: IFRA Safety:**
+  - SafetyWarnings component on each card
+  - Safety score (0-100) display
+  - Allergen warnings
+- **Phase 3: Blurred Teasers:**
+  - BlurredTeaserCard component for locked results
+  - Shows metadata (name, brand, match %) but image blurred
+  - Click → UpgradePrompt
 
 #### 9. Responsive & RTL:
 - ✅ Grid responsive (2/4 أعمدة)
@@ -1568,8 +1666,12 @@
   ├─ Select symptoms → QuizContext.step3_allergy
   └─ "التالي" → /results
 
-/results
-  └─ View recommendations
+/results (Phase 3: Value Ladder)
+  ├─ POST /api/match (with tier check)
+  ├─ Guest: 3 results visible + 9 blurred teasers
+  ├─ BlurredTeaserCard: Shows locked results (metadata only)
+  ├─ UpgradePrompt: "سجّل مجاناً لرؤية 5 نتائج" → /register
+  └─ View recommendations (limited by tier)
 
 /login
   ├─ Google OAuth → /dashboard
@@ -1584,7 +1686,25 @@
   ├─ View stats, tabs, RadarChart (lazy loaded)
   ├─ Tab switch → Update PerfumeGrid (memoized)
   ├─ Cross-Tab Sync → Real-time favorites update
+  ├─ TestHistory: Shows past quiz results (Phase 3)
   └─ Perfume click → /perfume/[id]
+
+/results (Phase 3: Value Ladder)
+  ├─ POST /api/match (with tier check + test limit)
+  ├─ Free: 5 results visible + 7 blurred teasers + upsell card
+  ├─ Premium: 12 full results (unlimited)
+  ├─ Test limit check: Free (2/month) vs Premium (unlimited)
+  ├─ UpgradePrompt: "ترقية لـ Premium" → /pricing (if Free)
+  ├─ PriceAlertButton: Set price alerts (Premium only)
+  └─ View recommendations (tier-based)
+
+/pricing (Phase 4: Payment)
+  ├─ View plans: Free vs Premium
+  ├─ Premium plan: "اشترك الآن" → POST /api/payment/create-checkout
+  ├─ Moyasar checkout: Redirect to payment gateway
+  ├─ Payment success → POST /api/webhooks/moyasar
+  ├─ Subscription activated → Email receipt (Resend)
+  └─ Redirect to /dashboard (Premium tier)
 
 /profile
   ├─ Avatar upload → /api/avatar → Update session (error handling)
@@ -1965,7 +2085,274 @@ return (
 
 ---
 
-## 13. Changelog
+## 13. Features List
+
+### Core Features
+- ✅ **Quiz System** - 3-step quiz (favorites, disliked, allergy)
+- ✅ **Matching Algorithm** - AI-powered perfume matching
+- ✅ **Favorites System** - Save favorite perfumes (guest + authenticated)
+- ✅ **Cross-Tab Sync** - Real-time favorites synchronization
+- ✅ **Guest Migration** - Automatic favorites migration after login
+
+### Phase 2 Features (Bridge + IFRA)
+- ✅ **Fragella Bridge** - Unified perfume data from local + Fragella API
+- ✅ **IFRA Safety Scoring** - Safety score calculation (0-100)
+- ✅ **Safety Warnings** - Component displays allergen warnings
+- ✅ **Symptom Mapping** - Symptom-to-ingredient mapping database
+- ✅ **Unified Perfume Format** - Single format for all perfume sources
+
+### Phase 3 Features (Value Ladder)
+- ✅ **Value Ladder System** - Tier-based access (Guest/Free/Premium)
+- ✅ **Blurred Teasers** - Shows locked results for lower tiers
+- ✅ **Test Limits** - Free: 2 tests/month, Premium: unlimited
+- ✅ **Results Gating** - Guest: 3 results, Free: 5 results, Premium: 12 results
+- ✅ **Price Alerts** - Set price drop alerts (Premium feature)
+- ✅ **Test History** - Track past quiz results
+- ✅ **Upgrade Prompts** - Conversion prompts for lower tiers
+- ✅ **Price Comparison** - Compare prices across stores (Premium)
+
+### Phase 4 Features (Payments)
+- ✅ **Moyasar Integration** - Saudi payment gateway
+- ✅ **Checkout Flow** - Secure payment processing
+- ✅ **Webhook Handler** - Payment confirmation handling
+- ✅ **Email Notifications** - Receipts and invoices via Resend
+- ✅ **Subscription Management** - Automatic renewal and cancellation
+- ✅ **Cron Jobs** - Price updates + subscription renewals
+
+### Phase 5 Features (Dashboard)
+- ✅ **Premium Dashboard** - Enhanced dashboard for Premium users
+- ✅ **Results Page** - Tier-aware results display
+- ✅ **Upgrade Prompts** - Context-aware upgrade suggestions
+
+---
+
+## 14. Tech Stack
+
+### Frontend
+- **Framework:** Next.js 14+ (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **UI Components:** Radix UI, shadcn/ui
+- **State Management:** React Context (QuizContext)
+- **Forms:** React Hook Form
+- **Animations:** Framer Motion
+
+### Backend
+- **Runtime:** Node.js
+- **API:** Next.js API Routes
+- **Database:** PostgreSQL (migrated from SQLite for Phase 3+)
+- **ORM:** Prisma
+- **Authentication:** NextAuth.js (Credentials + Google OAuth)
+
+### Services & Integrations
+- ✅ **Fragella Bridge** - `perfume-bridge.service.ts` - Unified perfume API
+- ✅ **IFRA Safety** - `ifra.service.ts` - Safety scoring and allergen detection
+- ✅ **Moyasar** - `moyasar.service.ts` - Payment processing
+- ✅ **Resend Email** - `email.service.ts` - Email notifications
+- ✅ **Gating Logic** - `gating.ts` - Tier-based access control
+
+### Database
+- **Provider:** PostgreSQL (required for Phase 3+ features)
+- **Migrations:** Prisma Migrate
+- **Schema:** Unified schema (Phase 1 + 3 + 4)
+
+### Payment & Email
+- **Payment Gateway:** Moyasar (Saudi Arabia)
+- **Email Provider:** Resend
+- **Webhooks:** Moyasar webhook handler
+
+### Development Tools
+- **Package Manager:** npm
+- **Linting:** ESLint
+- **Type Checking:** TypeScript
+- **Version Control:** Git
+
+---
+
+## 15. API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration
+- `GET/POST /api/auth/[...nextauth]` - NextAuth handlers
+
+### Matching & Results
+- `POST /api/match` - **Phase 2+3:** Unified matching with tier gating
+  - **Request:** `{ preferences: { likedPerfumeIds, dislikedPerfumeIds, allergyProfile } }`
+  - **Response:** `{ perfumes, userScentDNA, hasPreferences, total }`
+  - **Tier Logic:** Guest (3 results), Free (5 results), Premium (12 results)
+  - **Test Limits:** Checks monthly test count before allowing
+
+### Perfumes
+- `GET /api/perfumes/search` - Search perfumes
+- `GET /api/perfumes/details/[fragellaId]` - Get perfume details (Fragella)
+
+### Prices
+- `GET /api/prices/compare` - Compare prices across stores
+- `POST /api/prices/alerts` - **Phase 3:** Create price alert (Premium)
+
+### Payments (Phase 4)
+- `POST /api/payment/create-checkout` - Create Moyasar checkout session
+  - **Request:** `{ plan: 'premium', userId }`
+  - **Response:** `{ checkoutUrl }` - Redirect to Moyasar
+- `POST /api/webhooks/moyasar` - Moyasar webhook handler
+  - **Process:** Payment confirmation → Activate subscription → Send email
+
+### User Data
+- `GET /api/user/favorites` - Get user favorites
+- `POST /api/user/favorites` - Add/remove favorite
+- `GET /api/avatar` - Get avatar
+- `POST /api/avatar` - Upload avatar
+
+### Cron Jobs
+- `POST /api/cron/update-prices` - Update perfume prices
+- `POST /api/cron/jobs` - **Phase 4:** Combined cron (prices + renewals)
+
+### Feedback
+- `POST /api/feedback/suggestions` - Submit feedback
+- `POST /api/feedback/suggestions/[id]/vote` - Vote on suggestion
+
+---
+
+## 16. Database Models
+
+### User Model (Updated Phase 3)
+```prisma
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String   // Hashed with bcryptjs
+  subscriptionTier   SubscriptionTier @default(FREE)  // Phase 3
+  monthlyTestCount   Int              @default(0)     // Phase 3
+  lastTestReset      DateTime         @default(now()) // Phase 3
+  
+  // Relations
+  priceAlerts   PriceAlert[]    // Phase 3
+  testHistory   TestHistory[]   // Phase 3
+  subscriptions Subscription[]  // Phase 3
+}
+```
+
+### SubscriptionTier Enum (Phase 3)
+```prisma
+enum SubscriptionTier {
+  GUEST    // Not registered (localStorage only)
+  FREE     // Registered, limited features
+  PREMIUM  // Paid subscription, full access
+}
+```
+
+### PriceAlert Model (Phase 3)
+```prisma
+model PriceAlert {
+  id          String   @id @default(cuid())
+  userId      String
+  perfumeId   String
+  targetPrice Float
+  isActive    Boolean  @default(true)
+  notified    Boolean  @default(false)
+  lastChecked DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@unique([userId, perfumeId])
+}
+```
+
+### TestHistory Model (Phase 3)
+```prisma
+model TestHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  likedPerfumes   String   // JSON array
+  dislikedPerfumes String   // JSON array
+  allergySymptoms String   // JSON array
+  allergyFamilies String   // JSON array
+  totalMatches    Int
+  topMatchId      String?
+  topMatchScore   Float?
+  scentDNA        String?  // JSON
+  
+  user            User     @relation(fields: [userId], references: [id])
+  
+  createdAt       DateTime @default(now())
+}
+```
+
+### IfraMaterial Model (Phase 1)
+```prisma
+model IfraMaterial {
+  id                String   @id @default(cuid())
+  name              String   @unique
+  nameAr            String?
+  casNumber         String?  @unique
+  maxConcentration  Float    @default(0.01)
+  category          String   // allergen, sensitizer
+  symptoms          String   @default("[]") // JSON array
+  
+  perfumeIngredients PerfumeIngredient[]
+  symptomMappings    SymptomIngredientMapping[]
+}
+```
+
+### Subscription Model (Phase 3+4)
+```prisma
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String
+  tier      SubscriptionTier @default(PREMIUM)
+  status    SubscriptionStatus
+  provider  PaymentProvider  // STRIPE, PADDLE, MOYASAR, MANUAL
+  
+  // Phase 4: Moyasar fields
+  moyasarPaymentId   String?  @unique
+  moyasarCustomerId  String?
+  moyasarSourceId    String?
+  lastPaymentDate    DateTime?
+  nextBillingDate    DateTime?
+  
+  amount    Float
+  currency  String   @default("SAR")
+  
+  user      User     @relation(fields: [userId], references: [id])
+}
+```
+
+### Existing Models (Pre-Phase 2)
+- `Perfume` - Local perfume database
+- `Store` - Store information
+- `Price` - Price data per store
+- `FragellaPerfume` - Fragella API cache
+- `FragellaCache` - General Fragella cache
+- `UserFavorite` - User favorites
+- `Suggestion` - Feedback suggestions
+
+---
+
+## 17. Changelog
+
+### 2026-01-23 - v3.0.0 Phase 2-5 Merge Complete ✅
+- ✅ **Match Route Merged:** Full Value Ladder implementation (Guest/Free/Premium)
+  - Guest: 3 results + 9 blurred teasers
+  - Free: 5 results + 7 blurred teasers + upsell card
+  - Premium: 12 full results (unlimited)
+- ✅ **IFRA Safety + Fragella Bridge:** Unified perfume system
+  - `perfume-bridge.service.ts` - Bridge for local + Fragella perfumes
+  - `ifra.service.ts` - Safety scoring and allergen detection
+  - `SafetyWarnings.tsx` - Safety warning component
+- ✅ **Moyasar Payments + Email:** Payment integration complete
+  - `moyasar.service.ts` - Payment processing
+  - `email.service.ts` - Resend email notifications
+  - `POST /api/payment/create-checkout` - Checkout endpoint
+  - `POST /api/webhooks/moyasar` - Webhook handler
+- ✅ **Test Limits + Blurred Teasers:** Value Ladder gating
+  - Free: 2 tests/month, Premium: unlimited
+  - `BlurredTeaserCard.tsx` - Locked results display
+  - `gating.ts` - Centralized tier limits
+- ✅ **Unified Schema:** PostgreSQL migration complete
+  - `SubscriptionTier` enum (GUEST, FREE, PREMIUM)
+  - `PriceAlert`, `TestHistory`, `IfraMaterial` models
+  - `Subscription` model with Moyasar fields
+- ✅ **Documentation Updated:** USER_JOURNEY_LIVE_2026.md synchronized with code
 
 ### 2026-01-15 - Production Ready ✅
 - ✅ Implemented 22/22 prompts (P0/P1/P2)
@@ -2094,7 +2481,7 @@ return (
 
 ---
 
-**Last Updated:** 2026-01-16 14:14 +03  
-**Version:** v2.2.5 - P1 Logout Race Condition Fixed  
+**Last Updated:** 2026-01-23  
+**Version:** v3.0.0 - Phase 2-5 Merge Complete  
 **Status:** ✅ **100/100 Production Ready + Documented**  
 **Next Review:** 2026-04-15
