@@ -43,8 +43,24 @@ export default function PricingPage() {
       
       // TODO: Redirect to payment (Stripe/Paddle)
       router.push(`/checkout?plan=${plan}`)
-    } catch (error) {
-      setCheckoutError('فشل إنشاء جلسة الدفع. حاول مرة أخرى.')
+    } catch (error: any) {
+      console.error('Checkout error:', error)
+
+      let errorMessage = 'حدث خطأ غير متوقع. حاول مرة أخرى.'
+
+      if (!navigator.onLine) {
+        errorMessage = 'لا يوجد اتصال بالإنترنت. تحقق من الشبكة وأعد المحاولة.'
+      } else if (error.message?.includes('Network') || error.name === 'TypeError') {
+        errorMessage = 'مشكلة في الاتصال بالخادم. تحقق من الإنترنت.'
+      } else if (error.message?.includes('session') || error.message?.includes('auth')) {
+        errorMessage = 'انتهت صلاحية الجلسة. سجّل الدخول مرة أخرى.'
+      } else if (error.status === 429) {
+        errorMessage = 'تم إرسال طلبات كثيرة. انتظر قليلاً وأعد المحاولة.'
+      } else {
+        errorMessage = `خطأ: ${error.message || 'غير معروف'}. حاول مرة أخرى.`
+      }
+
+      setCheckoutError(errorMessage)
     } finally {
       setIsProcessing(false)
     }
