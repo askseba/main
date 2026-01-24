@@ -18,6 +18,7 @@ export default function Step1FavoritesPage() {
   const [showMaxWarning, setShowMaxWarning] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
   const [searchResults, setSearchResults] = useState<typeof perfumes extends readonly (infer U)[] ? U[] : never>([])
+  const [searchTimeoutId, setSearchTimeoutId] = useState<NodeJS.Timeout | null>(null)
 
   // Validate perfumes data synchronously (no effect needed)
   const error = (!perfumes || !Array.isArray(perfumes) || perfumes.length === 0) 
@@ -93,11 +94,14 @@ export default function Step1FavoritesPage() {
 
   // Search functionality - exclude already selected perfumes
   useEffect(() => {
+    if (searchTimeoutId) clearTimeout(searchTimeoutId)
+
     if (!debouncedSearchTerm.trim()) {
       setSearchResults([])
       setSearchError(null)
       return
     }
+    let timeoutId: NodeJS.Timeout | null = null
     try {
       if (!perfumes || !Array.isArray(perfumes)) {
         setSearchResults([])
@@ -111,9 +115,19 @@ export default function Step1FavoritesPage() {
       )
       setSearchResults(filtered)
       setSearchError(null)
+
+      timeoutId = setTimeout(() => {
+        setSearchError('البحث تأخّر 30s. حاول مرة أخرى.')
+        setSearchResults([])
+      }, 30000)
+      setSearchTimeoutId(timeoutId)
     } catch {
       setSearchError('خطأ في البحث. حاول مرة أخرى.')
       setSearchResults([])
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
     }
   }, [debouncedSearchTerm, selectedPerfumes])
 
