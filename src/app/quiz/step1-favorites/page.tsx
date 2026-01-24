@@ -16,6 +16,8 @@ export default function Step1FavoritesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [showMaxWarning, setShowMaxWarning] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const [searchResults, setSearchResults] = useState<typeof perfumes extends readonly (infer U)[] ? U[] : never>([])
 
   // Validate perfumes data synchronously (no effect needed)
   const error = (!perfumes || !Array.isArray(perfumes) || perfumes.length === 0) 
@@ -90,18 +92,28 @@ export default function Step1FavoritesPage() {
   }, [selectedPerfumes])
 
   // Search functionality - exclude already selected perfumes
-  const searchResults = useMemo(() => {
-    if (!debouncedSearchTerm.trim()) return []
+  useEffect(() => {
+    if (!debouncedSearchTerm.trim()) {
+      setSearchResults([])
+      setSearchError(null)
+      return
+    }
     try {
-      if (!perfumes || !Array.isArray(perfumes)) return []
-      return perfumes.filter(p =>
+      if (!perfumes || !Array.isArray(perfumes)) {
+        setSearchResults([])
+        setSearchError(null)
+        return
+      }
+      const filtered = perfumes.filter(p =>
         (p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
          p.brand.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) &&
         !selectedPerfumes.includes(p.id)
       )
-    } catch (err) {
-      console.error('Error filtering perfumes:', err)
-      return []
+      setSearchResults(filtered)
+      setSearchError(null)
+    } catch {
+      setSearchError('خطأ في البحث. حاول مرة أخرى.')
+      setSearchResults([])
     }
   }, [debouncedSearchTerm, selectedPerfumes])
 
@@ -229,6 +241,18 @@ export default function Step1FavoritesPage() {
             )}
           </div>
 
+          {searchError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+              <p className="text-sm text-red-700">{searchError}</p>
+              <button
+                onClick={() => { setSearchError(null); setSearchTerm('') }}
+                className="text-sm text-red-600 hover:text-red-700 underline mt-1"
+              >
+                إعادة المحاولة
+              </button>
+            </div>
+          )}
+
           {/* ========================================
               SEARCH RESULTS - TEXT ONLY (No Images)
               ======================================== */}
@@ -274,7 +298,7 @@ export default function Step1FavoritesPage() {
           )}
 
           {/* No Results Message */}
-          {debouncedSearchTerm.trim() && searchResults.length === 0 && (
+          {debouncedSearchTerm.trim() && !searchError && searchResults.length === 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-brown-text/20 rounded-xl shadow-xl z-40 p-6 text-center">
               <p className="text-brown-text/75">لا توجد نتائج مطابقة لـ &ldquo;{debouncedSearchTerm}&rdquo;</p>
             </div>
